@@ -3,6 +3,7 @@ import numpy as np
 from pdf2image import convert_from_path
 from google.cloud import storage
 import os
+import json
 
 
 
@@ -28,39 +29,9 @@ def combine_overlapping_lines(lines):
             combined_lines.append((x1, y1, x2, y2))
     return combined_lines
 
-def crop_and_save_images(image, combined_lines, page_num, output_dir,color_name):
-    """
-    Crop and save images based on the bounding boxes.
-    
-    Parameters:
-    - image: The original image.
-    - combined_lines: List of bounding box coordinates.
-    - page_num: The page number in the PDF.
-    - output_dir: Directory to save cropped images.
-    """
-    # Initialize a GCS client
-    storage_client = storage.Client()
-    bucket_name = os.getenv('BUCKET_NAME')
-    bucket=storage_client.bucket(bucket_name)
-     # Initialize a list to hold URLs of uploaded images
-   
-    for i, (x1, y1, x2, y2) in enumerate(combined_lines):
-        cropped_image = image[y1 - 10:y2 + 10, x1 - 1500:x2 + 1500]
-        # Generate a unique name for the image
-        cropped_image_name = f'page_{page_num + 1}_{color_name}_crop_{i + 1}.png'
-
-       # Save locally if desired
-        cropped_image_path = os.path.join(output_dir, cropped_image_name)
-        cv2.imwrite(cropped_image_path, cropped_image)
-        print(f'Saved locally: {cropped_image_path}')
-        
-        # Upload to GCS
-        blob = bucket.blob(cropped_image_name)
-        blob.upload_from_filename(cropped_image_path)  # Upload the file from local path
-        print(f'Uploaded to GCS: {blob.public_url}') 
 
 
-def detect_and_crop_regions_from_pdf(pdf_path, output_dir):
+def detect_and_crop_regions_from_pdf(pdf_path, output_dir,document_number,json_path):
     """
     Detect red regions in a PDF and save cropped images.
     
@@ -123,6 +94,59 @@ def detect_and_crop_regions_from_pdf(pdf_path, output_dir):
             # Combine overlapping bounding boxes
             combined_lines = combine_overlapping_lines(lines)
             # Crop and save the regions, getting URLs
-            crop_and_save_images(open_cv_image, combined_lines, page_num, output_dir, color_name)
+            crop_and_save_images(open_cv_image, combined_lines, page_num, output_dir, color_name,document_number,json_path)
          
 
+def crop_and_save_images(image, combined_lines, page_num, output_dir,color_name,document_number,json_path):
+    """
+    Crop and save images based on the bounding boxes.
+    
+    Parameters:
+    - image: The original image.
+    - combined_lines: List of bounding box coordinates.
+    - page_num: The page number in the PDF.
+    - output_dir: Directory to save cropped images.
+    """
+    # Initialize a GCS client
+    storage_client = storage.Client()
+    bucket_name = os.getenv('BUCKET_NAME')
+    bucket=storage_client.bucket(bucket_name)
+    # Initialize a list to hold URLs of uploaded images
+    uploaded_urls = []
+    # Load the JSON file
+    if os.path.exists(json_path):
+        with open(json_path, 'r') as json_file:
+            json_data = json.load(json_file)
+    else:
+        json_data = {}  # Create an empty dictionary if the file doesn't exist
+    # Find the next available "change" index
+    existing_changes = [key for key in json_data if key.startswith("change_")]
+    next_change_index = len(existing_changes) + 1
+    uploaded_urls = []
+
+    for i, (x1, y1, x2, y2) in enumerate(combined_lines):
+        cropped_image = image[y1 - 10:y2 + 10, x1 - 1500:x2 + 1500]
+        # Generate a unique name for the image
+        cropped_image_name = f'CR_{document_number}_page_{page_num + 1}_{color_name}_crop_{i + 1}.png'
+
+       # Save locally 
+        cropped_image_path = os.path.join(output_dir, cropped_image_name)
+        cv2.imwrite(cropped_image_path, cropped_image)
+        print(f'Saved locally: {cropped_image_path}')
+        
+        # Upload to GCS
+        blob = bucket.blob(cropped_image_name)
+        blob.upload_from_filename(cropped_image_path)  # Upload the file from local path
+        # Append the public URL of the uploaded image to the list
+        uploaded_url = blob.public_url
+        uploaded_urls.append(uploaded_url)
+        print(f'Uploaded to GCS: {uploaded_url}')
+        # Add the new link to the JSON using the next available "change_x_link" key
+        json_data[f'change_{next_change_index}_link'] = uploaded_url
+        next_change_index += 1
+    # Save the updated JSON back to the file
+    with open(json_path, 'w') as json_file:
+        json.dump(json_data, json_file, indent=4)
+    print(f'Updated JSON file with URLs: {json_path}')
+
+    return uploaded_urls  # Return the list of uploaded URLs

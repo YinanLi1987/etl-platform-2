@@ -5,6 +5,7 @@ from app.processes.process_pip import process_documents
 from app.processes.load_extract_save import load_extract_save_data
 from app.processes.changement_image import detect_and_crop_regions_from_pdf
 import os
+import json
 
 
 process_bp = Blueprint('process_bp', __name__)
@@ -26,6 +27,8 @@ def handle_process():
     try:
         #Step 1: Validate the URL
         url = request.form.get('url')
+        if not url:
+            raise ValueError("URL is missing or invalid.")
         #Step 2:Process the documents (download + conversion)
         result = process_documents(url, temp_folder, preprocessed_folder)
         # Step 3: Load, extract data and save data to json
@@ -36,10 +39,15 @@ def handle_process():
                # Save the extracted data as JSON file
                json_filename = f"{os.path.splitext(pdf_file)[0]}_extracted.json"
                json_path = os.path.join(extracted01_folder, json_filename)
+               
                # Call the function to load, extract, and save data  
                load_extract_save_data(pdf_path, json_path)
+               # Step 4: Retrieve the document_number from the JSON file
+               with open(json_path, 'r') as json_file:
+                    json_data = json.load(json_file)
+                    document_number = json_data.get("document_number", "Unknown")
                # Crop image
-               detect_and_crop_regions_from_pdf(pdf_path, extracted02_folder)
+               detect_and_crop_regions_from_pdf(pdf_path, extracted02_folder,document_number,json_path)
                # Save the extracted data including URLs to the JSON file
                
                print(f"Finished detect_and_crop_regions_from_pdf for {pdf_file}")
