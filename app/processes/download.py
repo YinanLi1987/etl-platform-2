@@ -103,7 +103,7 @@ def download_documents(url,temp_folder):
                 total_files += 1 
 
                 
-                print(f"{total_files} files processed.")
+                print(f"{total_files} files downloaded and unzipped.")
 
             except Exception as e:
                 print(f"An error occurred while processing the link {link}: {str(e)}")

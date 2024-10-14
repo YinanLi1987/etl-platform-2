@@ -30,4 +30,4 @@ def load_extract_save_data(input_pdf_path,output_json_path):
        # Step 3: Save the extracted data to a JSON file
     print(f"Saving extracted data to: {output_json_path}")
     save_extracted_data(extracted_data, output_json_path)
-    print("Process completed successfully!")
+    print("Extract metadata completed successfully!")
