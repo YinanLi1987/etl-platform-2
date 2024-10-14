@@ -40,6 +40,8 @@ def handle_process():
                load_extract_save_data(pdf_path, json_path)
                # Crop image
                detect_and_crop_regions_from_pdf(pdf_path, extracted02_folder)
+               # Save the extracted data including URLs to the JSON file
+               
                print(f"Finished detect_and_crop_regions_from_pdf for {pdf_file}")
               
     

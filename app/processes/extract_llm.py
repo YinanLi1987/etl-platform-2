@@ -12,7 +12,7 @@ def load_api_key():
     load_dotenv(dotenv_path=env_path)
     api_key = os.getenv("MISTRALAI_API_KEY")
     print(f"Loaded API Key: {api_key}") 
-    return os.getenv("MISTRALAI_API_KEY")
+    return api_key
 
 # Define a custom prompt to provide instructions and any additional context.
 # 1) You can add examples into the prompt template to improve extraction quality

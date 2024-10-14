@@ -1,7 +1,10 @@
 import cv2
 import numpy as np
 from pdf2image import convert_from_path
+from google.cloud import storage
 import os
+
+
 
 def convert_pdf_to_images(pdf_path):
     """
@@ -35,11 +38,26 @@ def crop_and_save_images(image, combined_lines, page_num, output_dir,color_name)
     - page_num: The page number in the PDF.
     - output_dir: Directory to save cropped images.
     """
+    # Initialize a GCS client
+    storage_client = storage.Client()
+    bucket_name = os.getenv('BUCKET_NAME')
+    bucket=storage_client.bucket(bucket_name)
+     # Initialize a list to hold URLs of uploaded images
+   
     for i, (x1, y1, x2, y2) in enumerate(combined_lines):
         cropped_image = image[y1 - 10:y2 + 10, x1 - 1500:x2 + 1500]
-        cropped_image_path = os.path.join(output_dir, f'page_{page_num + 1}_{color_name}_crop_{i + 1}.png')
+        # Generate a unique name for the image
+        cropped_image_name = f'page_{page_num + 1}_{color_name}_crop_{i + 1}.png'
+
+       # Save locally if desired
+        cropped_image_path = os.path.join(output_dir, cropped_image_name)
         cv2.imwrite(cropped_image_path, cropped_image)
-        print(f'Saved: {cropped_image_path}')
+        print(f'Saved locally: {cropped_image_path}')
+        
+        # Upload to GCS
+        blob = bucket.blob(cropped_image_name)
+        blob.upload_from_filename(cropped_image_path)  # Upload the file from local path
+        print(f'Uploaded to GCS: {blob.public_url}') 
 
 
 def detect_and_crop_regions_from_pdf(pdf_path, output_dir):
@@ -73,6 +91,7 @@ def detect_and_crop_regions_from_pdf(pdf_path, output_dir):
         ]
     }
 
+
     # Process each page
     for page_num, page in enumerate(pages):
         # Convert PIL image to OpenCV format
@@ -103,7 +122,7 @@ def detect_and_crop_regions_from_pdf(pdf_path, output_dir):
 
             # Combine overlapping bounding boxes
             combined_lines = combine_overlapping_lines(lines)
-
-            # Crop and save the red regions
-            crop_and_save_images(open_cv_image, combined_lines, page_num, output_dir,color_name)
+            # Crop and save the regions, getting URLs
+            crop_and_save_images(open_cv_image, combined_lines, page_num, output_dir, color_name)
+         
 
