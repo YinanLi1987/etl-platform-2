@@ -1,0 +1,23 @@
+# Python
+app/__pycache__/
+app/processes/__pycache__/
+app/routes/__pycache__/
+preprocessed/
+extracted01/
+extracted02/
+temp/
+test/
+.env
+preprocessed/
+
+*.py[cod]
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Environment files
+.env

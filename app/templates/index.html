@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Downloader</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>ETL For 3GPP Change Request Documents</h1>
+    <form id="process-form">
+        <label for="url">Enter the Source URL:</label>
+        <input type="text" id="url" name="url" required>
+        <button type="submit">Process</button>
+    </form>
+    
+    <div id="detected-count" style="margin-top: 20px;">Detected files: 0</div>
+    <div id="download-count" style="margin-top: 20px;">Download files: 0</div>
+    <div id="converted-count" style="margin-top: 20px;">Converted files: 0</div>
+
+    <div id="message" style="margin-top: 10px;"></div>
+    <script>
+        $(document).ready(function() {
+            $('#process-form').on('submit', function(e) {
+                e.preventDefault(); // Prevent default form submission
+
+                const url = $('#url').val(); // Get the URL from input
+
+                // Send the POST request
+                $.post('/process', { url: url })
+                    .done(function(response) {
+                        $('#detected-count').text(response.detected_message);
+                        $('#download-count').text(response.download_message);
+                        $('#converted-count').text(response.conversion_message);
+                       
+                    })
+                    .fail(function(xhr) {
+                        // Handle error for download and conversion
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            $('#message').text(xhr.responseJSON.error); // Show error if any
+                        } else {
+                            $('#message').text('An unknown error occurred.'); // Generic error message
+                        }
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
