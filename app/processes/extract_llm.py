@@ -20,6 +20,7 @@ def load_api_key():
 #    about the document from which the text was extracted.)
 # Function to extract metadata
 def extract_metadata(text: str) -> Optional[ChangeRequestTdoc]:
+    
     api_key = load_api_key()
     prompt = ChatPromptTemplate.from_messages(
         [

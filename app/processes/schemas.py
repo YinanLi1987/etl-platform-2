@@ -1,5 +1,11 @@
 from pydantic import BaseModel,Field
-from typing import Optional
+from typing import Optional, List
+
+
+class Section(BaseModel):
+    """Schema for dynamic sections with uncertain numbers and titles."""
+    section_number: Optional[str] = Field(default=None, description="The number of the section, if present")
+    section_title: Optional[str] = Field(default=None, description="The title of the section")
 
 class ChangeRequestTdoc(BaseModel):
     """Metadata of the 3GPP change request T doc."""
@@ -39,5 +45,5 @@ class ChangeRequestTdoc(BaseModel):
     other_test_specs_affected:Optional[str] = Field(default=None, description="The test specific clauses affected by the change request")
     other_o_m_specs_affected:Optional[str] = Field(default=None, description="The O&M specific clauses affected by the change request")
     other_comments: Optional[str] = Field(default=None, description="Additional comments related to the change request")
-    other_comments: Optional[str] = Field(default=None, description="Additional comments related to the change request")
-    other_comments: Optional[str] = Field(default=None, description="Additional comments related to the change request")
+    # Dynamic Sections with uncertain titles and numbers
+    sections: Optional[List[Section]] = Field(default=None, description="List of sections containing section number, title")
