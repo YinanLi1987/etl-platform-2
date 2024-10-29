@@ -2,12 +2,19 @@
 
 from flask import Flask
 from app.folder_manager import create_required_folders
+from app.routes.main_routes import process_bp
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 def create_app():
     # Initialize the Flask app
     app = Flask(__name__)
      # Define the base path for the project
     base_path = Path(__file__).resolve().parent.parent
+    # Load environment variables
+    load_dotenv()
+    BASE_URLS = os.getenv('BASE_URLS').split(',')
+    DOCUMENT_LINK_BASE = os.getenv('DOCUMENT_LINK_BASE')
 
     # Create the necessary folders
     create_required_folders(base_path)
@@ -24,8 +31,7 @@ def create_app():
 
 
 def register_blueprints(app):
-    """Register Flask blueprints."""
-    from app.routes.main_routes import process_bp 
+    """Register Flask blueprints."""    
     app.register_blueprint(process_bp)
     
 

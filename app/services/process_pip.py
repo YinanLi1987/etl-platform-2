@@ -1,6 +1,6 @@
 from flask import current_app
-from app.processes.download import download_documents
-from app.processes.docx_to_pdf import convert_file_service
+from app.services.download import download_documents
+from app.services.docx_to_pdf import convert_file_service
 
 
 def process_documents(url, temp_folder, preprocessed_folder):
