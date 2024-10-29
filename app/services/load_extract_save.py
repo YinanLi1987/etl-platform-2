@@ -1,6 +1,6 @@
 import json
 from langchain_community.document_loaders import PyPDFLoader
-from app.processes.extract_llm import extract_metadata
+from app.services.extract_llm import extract_metadata
 
 def load_pdf(file_path):
     """

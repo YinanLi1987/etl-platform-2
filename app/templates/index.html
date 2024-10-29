@@ -8,40 +8,48 @@
 </head>
 <body>
     <h1>ETL For 3GPP Change Request Documents</h1>
+
+    <h2>Meeting Link Extractor</h2>
+    <form action="/extract_links" method="post" id="extract-form">
+        <button type="submit">Extract Links</button>
+    </form>
+
+    <!-- Display total links and last updated date -->
+    <div id="status" style="margin-top: 20px;">
+        <p>Total Meeting Links: <span id="total-links">{{ total_links }}</span></p>
+        <p>Last Updated: <span id="last-updated">{{ last_updated }}</span></p>
+    </div>
+
     <form id="process-form">
         <label for="url">Enter the Source URL:</label>
         <input type="text" id="url" name="url" required>
-        <button type="submit">Process</button>
+        <button type="submit">Download</button>
     </form>
     
     <div id="detected-count" style="margin-top: 20px;">Detected files: 0</div>
     <div id="download-count" style="margin-top: 20px;">Download files: 0</div>
     <div id="converted-count" style="margin-top: 20px;">Converted files: 0</div>
-
+    
     <div id="message" style="margin-top: 10px;"></div>
+
     <script>
         $(document).ready(function() {
-            $('#process-form').on('submit', function(e) {
+            $('#extract-form').on('submit', function(e) {
                 e.preventDefault(); // Prevent default form submission
 
-                const url = $('#url').val(); // Get the URL from input
-
                 // Send the POST request
-                $.post('/process', { url: url })
-                    .done(function(response) {
-                        $('#detected-count').text(response.detected_message);
-                        $('#download-count').text(response.download_message);
-                        $('#converted-count').text(response.conversion_message);
-                       
-                    })
-                    .fail(function(xhr) {
-                        // Handle error for download and conversion
-                        if (xhr.responseJSON && xhr.responseJSON.error) {
-                            $('#message').text(xhr.responseJSON.error); // Show error if any
-                        } else {
-                            $('#message').text('An unknown error occurred.'); // Generic error message
-                        }
-                    });
+                $.post('/extract_links', function(response) {
+                    if (response.new_links_count > 0) {
+                        $('#message').text(`${response.new_links_count} new links extracted on ${response.date_str}.`);
+                    } else {
+                        $('#message').text('No new links found.');
+                    }
+                    // Update total links displayed
+                    $('#total-links').text(parseInt($('#total-links').text()) + response.new_links_count);
+                })
+                .fail(function(xhr) {
+                    $('#message').text('An error occurred during extraction.'); // Generic error message
+                });
             });
         });
     </script>

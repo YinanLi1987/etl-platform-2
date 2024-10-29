@@ -4,7 +4,7 @@ from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
 from pathlib import Path
-from app.processes.schemas import ChangeRequestTdoc
+from app.services.schemas import ChangeRequestTdoc
 
 # Load environment variables
 def load_api_key():

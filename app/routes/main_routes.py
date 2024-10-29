@@ -1,22 +1,47 @@
 # app/routes/main_routes.py
 
 from flask import Blueprint, Blueprint, request, jsonify, render_template,current_app
-from app.processes.process_pip import process_documents
-from app.processes.load_extract_save import load_extract_save_data
-from app.processes.changement_image import detect_and_crop_regions_from_pdf
+from app.services.process_pip import process_documents
+from app.services.load_extract_save import load_extract_save_data
+from app.services.changement_image import detect_and_crop_regions_from_pdf
+from app.services.meeting_extractor import MeetingLinkExtractor
 import os
 import json
+from datetime import datetime
+from dotenv import load_dotenv
+# Load environment variables
+load_dotenv()
+BASE_URLS = os.getenv('BASE_URLS').split(',')
+DOCUMENT_LINK_BASE = os.getenv('DOCUMENT_LINK_BASE')
 
 
 process_bp = Blueprint('process_bp', __name__)
 
 @process_bp.route("/")
 def index():
-        """Serve the main download page."""
-        return render_template('index.html')
-    
+            # Load existing links and get the total count and last updated date
+    extractor = MeetingLinkExtractor()
+    extractor.load_existing_links()  # Load existing links to get count and last update
+    total_links = len(extractor.existing_links)
+    last_updated = max(
+        [f for f in os.listdir('data/extracted_links') if f.endswith('.txt')],
+        key=lambda f: os.path.getmtime(os.path.join('data/extracted_links', f)),
+        default="No files found"
+    )
 
-@process_bp.route('/process', methods=['POST'])
+    return render_template('index.html', total_links=total_links, last_updated=last_updated)
+@process_bp.route('/extract_links', methods=['POST'])
+def extract_links():
+    extractor = MeetingLinkExtractor()  # Instantiate without arguments
+    new_links_count, date_str = extractor.run()
+
+    # Return a JSON response with the number of new links extracted
+    return jsonify({
+        'new_links_count': new_links_count,
+        'date_str': date_str
+    })
+
+@process_bp.route('/download', methods=['POST'])
 def handle_process():
     """Handle the file download request."""
     temp_folder = current_app.config['TEMP_FOLDER']

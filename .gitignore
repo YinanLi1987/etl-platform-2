@@ -10,6 +10,7 @@ test/
 .env
 preprocessed/
 extracrtor-test-76c9ea3bf8bb.json
+data/
 
 *.py[cod]
 
