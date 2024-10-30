@@ -21,7 +21,7 @@ class MeetingLinkExtractor:
         """Load existing links from the most recent file."""
         try:
             # Find the most recently modified .txt file in the 'data/extracted_links' directory
-            directory = os.path.join('data', 'extracted_links')
+            directory = os.path.join('data', 'meeting_links')
             if not os.path.exists(directory):
                 os.makedirs(directory)
             # Load the last updated file (by date)
@@ -81,9 +81,9 @@ class MeetingLinkExtractor:
         # Save newly extracted links with date in the filename
         if all_new_links:
             date_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            output_dir = os.path.join('data', 'extracted_links')
+            output_dir = os.path.join('data', 'meeting_links')
             os.makedirs(output_dir, exist_ok=True)  # Ensure the directory exists
-            output_file = os.path.join(output_dir, f'document_links_{date_str}.txt')
+            output_file = os.path.join(output_dir, f'meeting_links_{date_str}.txt')
             with open(output_file, 'w') as file:
                 for link in all_new_links:
                     file.write(f"{link}\n")

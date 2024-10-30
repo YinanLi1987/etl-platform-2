@@ -9,28 +9,26 @@
 <body>
     <h1>ETL For 3GPP Change Request Documents</h1>
 
-    <h2>Meeting Link Extractor</h2>
+    <h2>Meeting Extractor</h2>
     <form action="/extract_links" method="post" id="extract-form">
         <button type="submit">Extract Links</button>
     </form>
 
     <!-- Display total links and last updated date -->
     <div id="status" style="margin-top: 20px;">
-        <p>Total Meeting Links: <span id="total-links">{{ total_links }}</span></p>
+        <p>Total Meeting: <span id="total-links">{{ total_links }}</span></p>
         <p>Last Updated: <span id="last-updated">{{ last_updated }}</span></p>
     </div>
 
-    <form id="process-form">
-        <label for="url">Enter the Source URL:</label>
-        <input type="text" id="url" name="url" required>
-        <button type="submit">Download</button>
-    </form>
-    
-    <div id="detected-count" style="margin-top: 20px;">Detected files: 0</div>
-    <div id="download-count" style="margin-top: 20px;">Download files: 0</div>
-    <div id="converted-count" style="margin-top: 20px;">Converted files: 0</div>
-    
-    <div id="message" style="margin-top: 10px;"></div>
+
+    <!-- Add CR Links Extraction button -->
+    <h2>CR Document Extractor</h2>
+    <button id="extract-cr-button">Extract CR Links</button>
+    <div id="cr-extract-status"></div>
+
+    <h2>Download CR ZIP Files</h2>
+    <button id="download-all-button">Download ZIP Files</button>
+    <div id="download-result"></div>
 
     <script>
         $(document).ready(function() {
@@ -51,6 +49,45 @@
                     $('#message').text('An error occurred during extraction.'); // Generic error message
                 });
             });
+
+
+         // Event handler for CR Links Extraction button
+         $('#extract-cr-button').on('click', function() {
+                // Send POST request for CR links extraction
+                $.post('/extract_cr_links', function(response) {
+                    $('#cr-extract-status').text(
+                        `${response.cr_links_extracted} CR links extracted. ` +
+                        `${response.meeting_links_removed} meeting links removed (no CR links found).`
+                    );
+                })
+                .fail(function(xhr) {
+                    $('#cr-extract-status').text('An error occurred during CR links extraction.');
+                });
+            });
+
+         // Event handler for download button
+         $('#download-all-button').on('click', function() {
+                $.post('/download_all_files', function(response) {
+                    if (response.error) {
+                        $('#download-result').text(response.error);
+                    } else {
+                        $('#download-result').html(
+                            `<p>Successfully downloaded: ${response.success_count} files</p>` +
+                            `<p>Failed to download: ${response.failed_count} files</p>`
+                        );
+                        if (response.failed_files.length > 0) {
+                            $('#download-result').append(
+                                `<p>Failed Files:</p><ul>${response.failed_files.map(f => `<li>${f}</li>`).join('')}</ul>`
+                            );
+                        }
+                    }
+                }).fail(function(xhr) {
+                    $('#download-result').text('An error occurred during download.');
+                });
+            });
+
+
+
         });
     </script>
 </body>
