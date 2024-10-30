@@ -1,112 +1,131 @@
-#This file will contain the reusable download logic like URL validation, downloading the file, and saving the file.
 import os
-import re
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
-import zipfile
+from urllib.parse import urljoin, urlparse
+from datetime import datetime
+from dotenv import load_dotenv
+import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
+
+
+# Load environment variables
+load_dotenv()
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+class ZipFileDownloader:
+    def __init__(self, url, download_folder="data/downloads", max_retries=3, timeout=10):
+        self.url = self.validate_url(url)
+        self.download_folder = download_folder
+        self.zip_links = []
+        self.max_retries = max_retries
+        self.timeout = timeout
+
+        # Load allowed prefixes, base URL, and User-Agent from environment variables
+        self.allowed_prefixes = os.getenv('ALLOWED_PREFIXES').split(',')
+        self.base_url = os.getenv('BASE_URL')
+        self.user_agent = os.getenv('USER_AGENT')  # New User-Agent variable
+
+        # Create the download directory if it doesn't exist
+        if not os.path.exists(self.download_folder):
+            os.makedirs(self.download_folder)
 
 
 
+    def validate_url(self,url):
+        """Check if the URL is valid and starts with 'http' or 'https'."""
+        if not url or not (url.startswith("http://") or url.startswith("https://")):
+            logger.error("Invalid URL provided: %s", url)
+            raise ValueError("Invalid URL provided")
+        return url
 
-def validate_url(url):
-    """Check if the URL is valid and starts with 'http' or 'https'."""
-    if not url or not (url.startswith("http://") or url.startswith("https://")):
-        raise ValueError("Invalid URL provided")
-    return url
+    def download_html(self):
+        """Download the HTML content from the provided URL."""
+        try:
+            headers = {
+                'User-Agent': self.user_agent  # Use User-Agent from the .env file
+            }
+            response = requests.get(self.url, headers=headers, timeout=self.timeout)
+            response.raise_for_status()
+            return response.text
+        except requests.exceptions.RequestException as e:
+           logger.error("Error while downloading HTML: %s", str(e))
+           raise 
 
-def download_html(url):
-    """Download the HTML content from the provided URL."""
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        response = requests.get(url, headers=headers)  # Include the headers in the request
-        response.raise_for_status()
-        return response.text
-    except requests.exceptions.RequestException as e:
-        raise Exception(f"Error while downloading HTML: {str(e)}")
+    def extract_zip_links(self,html_content):
+        """Extract .zip links that include '=R4-' from the HTML content."""
+        soup = BeautifulSoup(html_content, 'html.parser')
+        extracted_links = set()  # Use a set to avoid duplicates
+        for a_tag in soup.find_all('a', href=True):
+            href = a_tag['href']
+            if href.endswith('.zip') and any(prefix in href for prefix in self.allowed_prefixes):
+                full_url = urljoin(self.base_url, href)
+                self.zip_links.append(full_url)
+    # Update self.zip_links with new unique links
+        self.zip_links.extend(extracted_links - set(self.zip_links))
 
-def extract_zip_links(html_content):
-    """Extract .zip links that include '=R4-' from the HTML content."""
-    soup = BeautifulSoup(html_content, 'html.parser')
-    links = []
-    for a_tag in soup.find_all('a', href=True):
-        if '=R4-' in a_tag['href']:
-            full_url = urljoin('https://portal.3gpp.org', a_tag['href'])  # Adjust base URL if necessary
-            links.append(full_url)
-    return links
+    # Log the number of links extracted
+        logger.info("Extracted %d unique .zip links.", len(extracted_links))
 
-def download_zip_file(url):
-    """Download a .zip file from the provided URL and return its content."""
-    try:
-        response = requests.get(url, allow_redirects=True)
-        response.raise_for_status()
-        return response.content
-    except requests.exceptions.RequestException as e:
-        raise Exception(f"Error while downloading ZIP file: {str(e)}")
-
-def find_actual_zip_url(intermediate_html):
-    """Extract the actual .zip URL from the intermediate HTML page."""
-    match = re.search(r"window\.location\.href='([^']*)'", intermediate_html)
-    if match:
-        return match.group(1)
-    else:
-        raise Exception("Failed to extract actual .zip URL")
-
-def save_file(content, filename):
-    """Save the downloaded file content to the local file system."""
-    with open(filename, 'wb') as f:
-        f.write(content)
-    return filename
-
-def unzip_file(zip_file_path,temp_folder):
-    """Unzip the downloaded .zip file."""
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-        zip_ref.extractall(temp_folder)
-
-def download_documents(url,temp_folder):
-    """Main function to orchestrate the download process and count downloaded files."""
-    total_files = 0  # Initialize total files counter
-    try:
-        # Step 1: Download the HTML page
-        html_content = download_html(url)
-        # Step 2: Extract .zip links that include '=R4-'
-        zip_links = extract_zip_links(html_content)
-        number_of_links = len(zip_links)
-       
-       
-        # Step 3: Download .zip files
-        for link in zip_links:
+    def download_file(self, url):
+        """Download a file from the given URL with retries."""
+        for attempt in range(self.max_retries):
             try:
-                print(f"Processing {link}")
-                intermediate_html = download_html(link)  # Download intermediate HTML page
-                actual_zip_url = find_actual_zip_url(intermediate_html)  # Extract the actual .zip URL
+                local_filename = os.path.join(self.download_folder, os.path.basename(urlparse(url).path))
+                logger.info("Downloading %s to %s", url, local_filename)
 
-                print(f"Downloading from {actual_zip_url}")
-                zip_content = download_zip_file(actual_zip_url)  # Download the actual .zip file
+                with requests.get(url, stream=True, timeout=self.timeout) as response:
+                    response.raise_for_status()
+                    with open(local_filename, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
 
-                # Step 4: Save the .zip file
-                print(f"Saving to {temp_folder}")
-                filename = os.path.join(temp_folder, os.path.basename(actual_zip_url))
-                save_file(zip_content, filename)
+                logger.info("Downloaded %s", local_filename)
+                return local_filename
 
-                # Step 5: Unzip the downloaded .zip file
-                print(f"Unzipping...")
-                unzip_file(filename,temp_folder)
+            except requests.exceptions.RequestException as e:
+                logger.warning("Error downloading %s (attempt %d/%d): %s", url, attempt + 1, self.max_retries, str(e))
+                time.sleep(2)  # Delay before retrying
 
-                # Optionally, delete the zip file after unzipping
-                print(f"Removing the original zip file...")
-                os.remove(filename)
+        logger.error("Failed to download %s after %d attempts", url, self.max_retries)
+        return None
 
-                # Increment the downloaded count
-                total_files += 1 
+    def run(self):
+        """Main execution method to perform the download process."""
+        start_time = datetime.now()
 
-                
-                print(f"{total_files} files downloaded and unzipped.")
+        try:
+            html_content = self.download_html()
+            self.extract_zip_links(html_content)
 
-            except Exception as e:
-                print(f"An error occurred while processing the link {link}: {str(e)}")
-    except Exception as e:
-        raise Exception(f"An error occurred during the download process: {str(e)}")
-    return total_files, number_of_links
+            downloaded_files = []
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                futures = {executor.submit(self.download_file, zip_link): zip_link for zip_link in self.zip_links}
+
+                for future in as_completed(futures):
+                    zip_link = futures[future]
+                    try:
+                        downloaded_file = future.result()
+                        if downloaded_file:
+                            downloaded_files.append(downloaded_file)
+                    except Exception as e:
+                        logger.error("Error occurred for %s: %s", zip_link, str(e))
+
+            end_time = datetime.now()
+            elapsed_time = (end_time - start_time).total_seconds()
+
+            return {
+                'downloaded_files': downloaded_files,
+                'total_links': len(self.zip_links),
+                'elapsed_time': elapsed_time
+            }
+
+        except Exception as e:
+            logger.error("An error occurred in the run process: %s", str(e))
+            return {
+                'downloaded_files': [],
+                'total_links': len(self.zip_links),
+                'elapsed_time': None
+            }
