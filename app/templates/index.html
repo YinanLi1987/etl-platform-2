@@ -26,9 +26,9 @@
     <button id="extract-cr-button">Extract CR Links</button>
     <div id="cr-extract-status"></div>
 
-    <h2>Download ZIP Files</h2>
-    <button id="download-button">Download Latest ZIP Files</button>
-    <div id="download-status"></div>
+    <h2>Download CR ZIP Files</h2>
+    <button id="download-all-button">Download ZIP Files</button>
+    <div id="download-result"></div>
 
     <script>
         $(document).ready(function() {
@@ -66,15 +66,25 @@
             });
 
          // Event handler for download button
-         $('#download-button').on('click', function() {
-                $.post('/download', function(response) {
-                    $('#download-status').text(response.message);
-                })
-                .fail(function(xhr) {
-                    $('#download-status').text('An error occurred during download.'); // Generic error message
+         $('#download-all-button').on('click', function() {
+                $.post('/download_all_files', function(response) {
+                    if (response.error) {
+                        $('#download-result').text(response.error);
+                    } else {
+                        $('#download-result').html(
+                            `<p>Successfully downloaded: ${response.success_count} files</p>` +
+                            `<p>Failed to download: ${response.failed_count} files</p>`
+                        );
+                        if (response.failed_files.length > 0) {
+                            $('#download-result').append(
+                                `<p>Failed Files:</p><ul>${response.failed_files.map(f => `<li>${f}</li>`).join('')}</ul>`
+                            );
+                        }
+                    }
+                }).fail(function(xhr) {
+                    $('#download-result').text('An error occurred during download.');
                 });
             });
-
 
 
 
