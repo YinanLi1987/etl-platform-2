@@ -1,0 +1,33 @@
+{
+    "meeting": null,
+    "document_number": null,
+    "location": "Hefei, China",
+    "dates": "14-18 October 2024",
+    "form_version": "12.2",
+    "affected_spec": null,
+    "cr_number": "0614",
+    "revision": "2",
+    "current_version": "18.6.0",
+    "proposed_change_affects": [
+        "ME",
+        "Network"
+    ],
+    "title": "Updating the UE-requested ProSeP policy provisioning procedure for multi-hop",
+    "source_wg": "Nokia, SHARP",
+    "source_tsg": "C1",
+    "work_item_code": "5G_ProSe_Ph3 Date: 2024-10-04",
+    "date_submitted": "2024-10-04",
+    "category": "B",
+    "release": "19",
+    "reason_for_change": "Within the scope of Rel-19 work related to 5G_ProSe_Ph3, SA2 has agreed\nin S2-2409085 on the new Policy/Parameters provisioning for different 5G\nProSe multi-hop communications.\nIn order to support the provisioning of the policy/parameters to the UE, the\nUE-requested ProSeP policy provisioning procedure needs to be updated to\nallow communicating the UE policies from the PCF to the UE. This CR\nintroduces the needed updates.",
+    "summary_of_change": "Updating the UE-requested ProSeP policy provisioning procedure to\naccommodate for multi-hop communications.",
+    "consequences_if_not_approved": null,
+    "affected_clauses": "5.3.2.1, 5.3.2.2, 5.3.2.3, 12.2",
+    "other_core_specs_affected": "TS/TR ... CR ...\naffected: X",
+    "other_test_specs_affected": "TS/TR ... CR ...\n(show related CRs) X",
+    "other_o_m_specs_affected": "TS/TR ... CR ...",
+    "other_comments": null,
+    "This CR's revision history": null,
+    "sections": [],
+    "change_links": []
+}
