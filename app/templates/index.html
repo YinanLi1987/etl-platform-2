@@ -30,6 +30,14 @@
     <button id="download-all-button">Download ZIP Files</button>
     <div id="download-result"></div>
 
+    <h2>Unzip Files</h2>
+    <button id="unzip-button">Unzip Files</button>
+    <div id="unzip-result"></div>
+
+    <h2>Convert DOCX to PDF, HTML and Extract Data</h2>
+    <button id="convert-file-button">Convert File</button>
+    <div id="convert-file-result"></div>
+
     <script>
         $(document).ready(function() {
             $('#extract-form').on('submit', function(e) {
@@ -85,8 +93,35 @@
                     $('#download-result').text('An error occurred during download.');
                 });
             });
-
-
+ // Event handler for Unzip Files button
+            $('#unzip-button').on('click', function() {
+                $.post('/unzip_files', function(response) {
+                    $('#unzip-result').html(
+                        `<p>Successfully unzipped: ${response.unzipped_files_count} files.</p>`
+                    );
+                }).fail(function(xhr) {
+                    $('#unzip-result').text('An error occurred during unzipping.');
+                });
+            });
+ // Event handler for Unzip Files button
+            $('#unzip-button').on('click', function() {
+                $.post('/unzip_files', function(response) {
+                    $('#unzip-result').html(
+                        `<p>Successfully unzipped: ${response.unzipped_files_count} files.</p>`
+                    );
+                }).fail(function(xhr) {
+                    $('#unzip-result').text('An error occurred during unzipping.');
+                });
+            });
+// Event handler for Convert File button
+            $('#convert-file-button').on('click', function() {
+                $.post('/convert_file', function(response) {
+                    $('#convert-file-result').text(response.message);
+                }).fail(function(xhr) {
+                    const errorMessage = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred during file conversion.';
+                    $('#convert-file-result').text(errorMessage);
+                });
+            });
 
         });
     </script>
