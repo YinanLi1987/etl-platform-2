@@ -3,6 +3,7 @@ from typing import List, Optional
 from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 from app.services.extraction.schema import Sections
+from pydantic import ValidationError
 
 
 
@@ -11,7 +12,7 @@ from app.services.extraction.schema import Sections
 # 2) Introduce additional parameters to take context into account (e.g., include metadata
 #    about the document from which the text was extracted.)
 # Function to extract metadata
-def extract_section_and_meeting_documentNum_data(text: str) -> Optional[Sections]:
+def extract_section_data(text: str) -> Optional[Sections]:
     
     api_key = "OLjgi0vnIGbJVhSxRDukfAlTs6gX1Hzq"
     prompt = ChatPromptTemplate.from_messages(
@@ -32,6 +33,13 @@ def extract_section_and_meeting_documentNum_data(text: str) -> Optional[Sections
     llm = ChatMistralAI(model="mistral-large-latest", temperature=0, api_key=api_key)
 
     runnable = prompt | llm.with_structured_output(schema=Sections)
-    result = runnable.invoke({"text": text})
-     # Return as a list if multiple sections, or wrap in a list if a single response
-    return result 
+   
+
+    try:
+        result = runnable.invoke({"text": text})
+        # Validate and ensure result matches Sections schema
+        sections_data = Sections.parse_obj(result)
+        return sections_data
+    except ValidationError as ve:
+        print("Error validating LLM output:", ve)
+        return None

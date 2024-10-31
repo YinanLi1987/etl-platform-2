@@ -89,11 +89,17 @@ def update_json_with_sections(json_filename, docx_filename):
     """
     # Convert the DOCX file to cleaned HTML and extract sections data
     sections_data = extract_sections_llm(docx_filename)
+    #print(f"Type of sections_data: {type(sections_data)}") 
 
     if sections_data is None:
         print("No sections data extracted.")
         return
-
+       # Transform Section objects into a list of dictionaries for JSON serialization
+    sections_list = sections_data.sections
+    sections_as_dicts = [
+        {"section_number": section.section_number, "section_title": section.section_title}
+        for section in sections_list
+    ]
     # Check if the JSON file exists
     if os.path.exists(json_filename):
         # Load existing JSON data
@@ -103,7 +109,7 @@ def update_json_with_sections(json_filename, docx_filename):
         json_data = {}
 
     # Update the JSON data with the extracted sections
-    json_data['sections'] = sections_data
+    json_data['sections'] = sections_as_dicts
 
     # Save the updated JSON data back to the file
     with open(json_filename, 'w') as json_file:

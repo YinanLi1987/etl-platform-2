@@ -1,7 +1,7 @@
 import os
 import pypandoc
 from bs4 import BeautifulSoup
-from app.services.extraction.llm_extractor import extract_section_and_meeting_documentNum_data
+from app.services.extraction.llm_extractor import extract_section_data
 
 
 def extract_sections_llm(filename):
@@ -39,7 +39,7 @@ def extract_sections_llm(filename):
             # Get the text of the <p> element and split it into words
             words = p.get_text().split()
             # Limit to the first 30 words
-            limited_text = ' '.join(words[:30])
+            limited_text = ' '.join(words[:20])
             # Create a new <p> element with the limited text
             new_p = soup.new_tag('p')
             new_p.string = limited_text
@@ -48,8 +48,17 @@ def extract_sections_llm(filename):
 
     # Get the cleaned HTML content as text
     cleaned_html_content = str(clean_soup)
-
+    # print(cleaned_html_content)
     # Extract section titles and numbers from the cleaned HTML using the LLM
-    sections_data = extract_section_and_meeting_documentNum_data(cleaned_html_content)
+    sections_data = extract_section_data(cleaned_html_content)
+    # Print extracted sections
+    #print(f"Extracted sections for {filename}:")
+    #if sections_data and sections_data.sections:
+    #    for section in sections_data.sections:
+    #        print(f" - Section Number: {section.section_number}, Section Title: {section.section_title}")
+    #else:
+    #    print(f"No sections found in {filename}.")
+    #print("Conversion complete.")
+    #print(sections_data)
     
-    return cleaned_html_content, sections_data
+    return  sections_data
