@@ -13,6 +13,7 @@ class CRZipDownloader:
     def __init__(self):
         self.cr_links_folder = 'data/cr_links'
         self.download_folder = 'data/downloads'
+        
         os.makedirs(self.download_folder, exist_ok=True)
         self.max_retries = 3
         self.retry_delay = 10  # seconds
