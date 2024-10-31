@@ -3,7 +3,7 @@ from typing import List, Optional
 from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 from app.services.extraction.schema import Sections
-from pydantic import ValidationError
+
 
 
 
@@ -34,12 +34,6 @@ def extract_section_data(text: str) -> Optional[Sections]:
 
     runnable = prompt | llm.with_structured_output(schema=Sections)
    
-
-    try:
-        result = runnable.invoke({"text": text})
-        # Validate and ensure result matches Sections schema
-        sections_data = Sections.parse_obj(result)
-        return sections_data
-    except ValidationError as ve:
-        print("Error validating LLM output:", ve)
-        return None
+    result = runnable.invoke({"text": text})
+    # Return as a list if multiple sections, or wrap in a list if a single response
+    return result 

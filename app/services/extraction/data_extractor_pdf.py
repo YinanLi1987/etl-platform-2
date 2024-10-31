@@ -6,6 +6,7 @@ import pdfplumber
 
 from app.services.extraction.data import extracted_data, pdf_patterns
 from app.services.extraction.data_extractor_html import extract_sections_llm
+from app.services.extraction.data_extractor_image import detect_and_crop_regions_from_pdf
 
 def convert_to_pdf_with_unoconv(input_file, converted_folder):
     """
@@ -54,7 +55,7 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
     # Ensure output folders exist
     os.makedirs(converted_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
-
+    document_number = os.path.splitext(os.path.basename(input_file))[0] 
     # Convert DOCX file to PDF
     pdf_path = convert_to_pdf_with_unoconv(input_file, converted_folder)
     if pdf_path is None:
@@ -68,7 +69,7 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
     data = extract_data_from_pdf(text)
 
     # Save extracted data to JSON
-    json_filename = os.path.splitext(os.path.basename(input_file))[0] + ".json"
+    json_filename = f"{document_number}.json" 
     json_path = os.path.join(json_folder, json_filename)
     with open(json_path, "w", encoding='utf-8') as json_file:
         json.dump(data, json_file, indent=4)
@@ -76,6 +77,10 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
     print(f"Processed {input_file} and saved to {json_filename}")
     # Update JSON with sections data extracted from the DOCX file
     update_json_with_sections(json_path, input_file)
+     # Detect colored regions, crop, and save URLs to JSON
+    output_dir = os.path.join(converted_folder, "cropped_images")
+    #document_number = data.get("document_number", "unknown_document")
+    detect_and_crop_regions_from_pdf(pdf_path, output_dir, document_number, json_path)
 
 
 
