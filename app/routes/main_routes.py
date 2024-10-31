@@ -96,14 +96,28 @@ def unzip_files():
 
 @process_bp.route('/convert_file', methods=['POST'])
 def convert_file():
-    input_file = "data/temp/unzip/C1-245945_was_C1-245892_was_C1-245482_PROSE_Ph3_UpdPolProv.docx"  # Change this to the appropriate path if necessary
+    #input_file = "data/temp/unzip/C1-245945_was_C1-245892_was_C1-245482_PROSE_Ph3_UpdPolProv.docx"  # Change this to the appropriate path if necessary
+    input_folder = "data/temp/unzip/"  # Folder containing the DOCX files
     converted_folder = "data/temp/converted_pdf"  # Folder to save converted PDFs
     json_folder = "data/extracted_data/"  # Folder to save extracted JSON data
 
     try:
-        process_file_and_update_json(input_file, converted_folder, json_folder)  # Call the process_file function
-        
+        # Ensure output folders exist
+        os.makedirs(converted_folder, exist_ok=True)
+        os.makedirs(json_folder, exist_ok=True)
+
+        # List all files in the input folder
+        for filename in os.listdir(input_folder):
+            # Process only .docx files
+            if filename.endswith('.docx'):
+                input_file = os.path.join(input_folder, filename)
+                current_app.logger.info(f"Processing file: {input_file}")
+                
+                # Call the function to process each file
+                process_file_and_update_json(input_file, converted_folder, json_folder)
+
         return jsonify({"message": "File conversion and data extraction completed successfully."})
+    
     except Exception as e:
         current_app.logger.error(f"Error during file conversion: {str(e)}")
         return jsonify({"error": "An error occurred during file conversion."}), 500
