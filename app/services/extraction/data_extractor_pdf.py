@@ -80,7 +80,7 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
      # Detect colored regions, crop, and save URLs to JSON
     output_dir = os.path.join(converted_folder, "cropped_images")
     #document_number = data.get("document_number", "unknown_document")
-    detect_and_crop_regions_from_pdf(pdf_path, output_dir, document_number, json_path)
+    #detect_and_crop_regions_from_pdf(pdf_path, output_dir, document_number, json_path)
 
 
 
@@ -115,6 +115,8 @@ def update_json_with_sections(json_filename, docx_filename):
 
     # Update the JSON data with the extracted sections
     json_data['sections'] = sections_as_dicts
+    json_data['meeting'] = sections_data.meeting  # Add meeting field
+    json_data['document_number'] = sections_data.document_number  # Add document number field
 
     # Save the updated JSON data back to the file
     with open(json_filename, 'w') as json_file:

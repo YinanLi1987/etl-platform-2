@@ -27,7 +27,12 @@ extracted_data = {
     "other_comments": None,
     "This CR's revision history": None,
     "sections": [],
-    "change_links":[]
+    "change_links":[],
+    "wg_status":None,
+    "wg_is_revision_of":None,
+    "wg_revised_to":None,
+    "wg_contact":None,
+    "wg_secratary_remarks":None
 }
 
 pdf_patterns = {
