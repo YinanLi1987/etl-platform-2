@@ -11,7 +11,8 @@ from dotenv import load_dotenv
 load_dotenv()
 BASE_URLS = os.getenv('BASE_URLS').split(',')
 DOCUMENT_LINK_BASE = os.getenv('DOCUMENT_LINK_BASE')
-WG_MEETING_EXCEL_LINK_BASE=os.getenv('WG_MEETING_EXCEL_LINK_BASE')
+MEETING_EXCEL_LINK_BASE=os.getenv('WG_MEETING_EXCEL_LINK_BASE')
+TSG_BASE_URLS=os.getenv('TSG_BASE_URLS').split(',')
 #print(WG_MEETING_EXCEL_LINK_BASE)
 
 class MeetingLinkExtractor:
@@ -54,6 +55,7 @@ class MeetingLinkExtractor:
         soup = BeautifulSoup(html_content, 'html.parser')
         meeting_ids = []
         wg_meeting_excel_links = []
+        tsg_meeting_excel_links = []
         
         # Find links with 'MtgId=' in the URL
         for a_tag in soup.find_all('a', href=True):
@@ -64,20 +66,23 @@ class MeetingLinkExtractor:
                 if match:
                     meeting_id = match.group(1)
                     link = f"{DOCUMENT_LINK_BASE}{meeting_id}"
-                    wg_meeting_excel_link = f"{WG_MEETING_EXCEL_LINK_BASE}{meeting_id}"
+                    wg_meeting_excel_link = f"{MEETING_EXCEL_LINK_BASE}{meeting_id}"
+                    tsg_meeting_excel_link = f"{MEETING_EXCEL_LINK_BASE}{meeting_id}"
                     #print(wg_meeting_excel_link)
                     wg_meeting_excel_links.append(wg_meeting_excel_link)
+                    tsg_meeting_excel_links.append(tsg_meeting_excel_link)
                     
                     if link not in self.existing_links:
                         meeting_ids.append(link)
         #print(wg_meeting_excel_links)
                         
-        return meeting_ids, wg_meeting_excel_links
+        return meeting_ids, wg_meeting_excel_links, tsg_meeting_excel_links
 
     def run(self):
         self.load_existing_links()  # Load existing links at the start
         all_new_links = []  # To store newly extracted links
         all_excel_links = []  # To store all Excel links
+        all_tsg_excel_links = [] # To store tsg meeting excel links
 
 
         for url in BASE_URLS:
@@ -86,7 +91,7 @@ class MeetingLinkExtractor:
             main_page_html = self.download_html(url)
             
             # Step 2: Extract meeting IDs
-            new_links,excel_links = self.extract_meeting_ids(main_page_html)
+            new_links,excel_links,_ = self.extract_meeting_ids(main_page_html)
             all_new_links.extend(new_links)
             all_excel_links.extend(excel_links)
             
@@ -114,6 +119,24 @@ class MeetingLinkExtractor:
                     file.write(f"{excel_link}\n")
             print(f"Saved {len(all_excel_links)} Excel links to {excel_output_file}")
 
+        for url in TSG_BASE_URLS:
+            main_page_html= self.download_html(url)
+            _,_,tsg_excel_links=self.extract_meeting_ids(main_page_html)
+            all_tsg_excel_links.extend(tsg_excel_links)
+
+# save nely extracted tsg links with data in the filename
+        if all_tsg_excel_links:
+            date_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            output_dir = os.path.join('data', 'tsg_excel_links')
+            os.makedirs(output_dir, exist_ok=True)  # Ensure the directory exists
+            excel_output_file = os.path.join(output_dir, f'tsg_meeting_excel_links_{date_str}.txt')
+            with open(excel_output_file, 'w') as file:
+                for tsg_excel_link in all_tsg_excel_links:
+                    file.write(f"{tsg_excel_link}\n")
+            print(f"Saved {len(all_tsg_excel_links)} Excel links to {excel_output_file}")   
+        
+        
+        
         # Return counts for both types of links
         return len(all_new_links), len(all_excel_links)
 

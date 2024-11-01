@@ -34,6 +34,10 @@
     <button id="unzip-button">Unzip Files</button>
     <div id="unzip-result"></div>
 
+    <h2>Download Meeting Excel Files</h2>
+    <button id="download-meeting-excel-button">Download Meeting Excel</button>
+    <div id="download-meeting-excel-result"></div>
+
     <h2>Convert DOCX to PDF, HTML and Extract Data</h2>
     <button id="convert-file-button">Convert File</button>
     <div id="convert-file-result"></div>
@@ -120,6 +124,29 @@
                 }).fail(function(xhr) {
                     const errorMessage = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred during file conversion.';
                     $('#convert-file-result').text(errorMessage);
+                });
+            });
+
+
+
+            // Event handler for Download Meeting Excel button
+            $('#download-meeting-excel-button').on('click', function() {
+                $.post('/download_meeting_excel', function(response) {
+                    if (response.error) {
+                        $('#download-meeting-excel-result').text(response.error);
+                    } else {
+                        $('#download-meeting-excel-result').html(
+                            `<p>Successfully downloaded: ${response.success_count} files</p>` +
+                            `<p>Failed to download: ${response.failed_count} files</p>`
+                        );
+                        if (response.failed_files.length > 0) {
+                            $('#download-meeting-excel-result').append(
+                                `<p>Failed Files:</p><ul>${response.failed_files.map(f => `<li>${f}</li>`).join('')}</ul>`
+                            );
+                        }
+                    }
+                }).fail(function(xhr) {
+                    $('#download-meeting-excel-result').text('An error occurred during the meeting Excel download.');
                 });
             });
 

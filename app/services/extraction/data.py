@@ -2,6 +2,7 @@
 extracted_data = {
     "meeting": None,
     "document_number": None,
+    "meeting_id":None,
     "location": None,
     "dates": None,
     "form_version": None,

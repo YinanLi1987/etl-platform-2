@@ -5,6 +5,7 @@ from flask import Blueprint, Blueprint, request, jsonify, render_template,curren
 from app.services.link_extractor.meeting_extractor import MeetingLinkExtractor
 from app.services.link_extractor.cr_links_extractor import CRZipLinkExtractor 
 from app.services.downloader.downloader import CRZipDownloader
+from app.services.downloader.meeting_excel_downloader import ExcelDownloader 
 from app.services.extraction.unzipper import FileUnzipper
 from app.services.extraction.data_extractor_pdf import process_file_and_update_json
 
@@ -91,6 +92,22 @@ def unzip_files():
     except Exception as e:
         current_app.logger.error(f"Error during unzipping: {str(e)}")
         return jsonify({"error": "An error occurred during the unzipping process."}), 500
+
+
+
+@process_bp.route('/download_meeting_excel', methods=['POST'])
+def download_meeting_excel():
+    downloader = ExcelDownloader()
+    try:
+        successful_downloads, failed_downloads = downloader.download_all_files()
+        return jsonify({
+            'success_count': successful_downloads,
+            'failed_files': failed_downloads,
+            'failed_count': len(failed_downloads)
+        })
+    except Exception as e:
+        current_app.logger.error(f"Error in meeting Excel download process: {str(e)}")
+        return jsonify({"error": "An error occurred during the meeting Excel download process."}), 500
 
 
 
