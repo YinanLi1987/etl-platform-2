@@ -28,9 +28,11 @@ class CRZipDownloader:
         latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(self.cr_links_folder, f)))
         return os.path.join(self.cr_links_folder, latest_file)
 
-    def download_file(self, url):
-        """Download a single file with retry logic."""
-        filename = os.path.join(self.download_folder, url.split('/')[-1])
+    def download_file(self, meeting_id, url):
+        """Download a single file with retry logic and a custom filename."""
+        # Extract the original filename from the URL
+        original_filename = url.split('/')[-1]
+        filename = os.path.join(self.download_folder, f"{meeting_id}_{original_filename}")
         for attempt in range(self.max_retries):
             try:
                 response = requests.get(url, timeout=10)
@@ -53,13 +55,19 @@ class CRZipDownloader:
         failed_downloads = []
 
         with open(cr_links_file, 'r') as file:
-            urls = [line.strip() for line in file.readlines() if line.strip()]
+            # Split each line into meeting ID and URL
+            for line in file:
+                line = line.strip()
+                if line:
+                    meeting_id, url = line.split(':', 1)  # Split on the first colon
+                    meeting_id = meeting_id.strip()  # Clean the meeting ID
+                    url = url.strip()  # Clean the URL
 
-        for url in urls:
-            filename, success = self.download_file(url)
-            if success:
-                successful_downloads += 1
-            else:
-                failed_downloads.append(filename)
+                    # Download the file using the meeting ID and the URL
+                    filename, success = self.download_file(meeting_id, url)
+                    if success:
+                        successful_downloads += 1
+                    else:
+                        failed_downloads.append(filename)
 
         return successful_downloads, failed_downloads

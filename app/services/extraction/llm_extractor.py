@@ -18,13 +18,30 @@ def extract_section_data(text: str) -> Optional[Sections]:
     prompt = ChatPromptTemplate.from_messages(
         [
             (
-                "system",
-                "You are an expert extraction algorithm. Extract only sections with a 'section number' "
-                "and a 'section title'. The 'section number' must start with a numeric character, "
-                "such as 1, 2, 3, etc. If a 'section number' is missing or does not start with a "
-                "numeric character, exclude that item from the extraction. "
-                "Return each valid section as an object in the 'sections' list, with 'section_number' "
-                "and 'section_title' fields.",
+                "You are an expert extraction algorithm. Your task is to extract specific information from text based on predefined requirements:"
+
+                "1. \"Meeting Name\": Extract the meeting name, which always begins with \"3GPP\" and may include a workgroup or TSG abbreviation."
+
+                "2. \"Document Number\": Extract a single document number containing a hyphen (\"-\")."
+
+                "3. \"Sections\": Extract sections based only on items that include:"
+
+                    "   - \"Section Number\": Starts with a numeric character (e.g., \"1\", \"2\", \"3\", etc.). Exclude any sections where the number does not start with a numeric character or is missing."
+
+                    "   - \"Section Title\": Present for each valid section."
+
+                "Return each valid section as an object within the 'sections' list, where each object includes fields:"
+
+                    "- 'section_number' (optional): The section's number, if available."
+
+                    "- 'section_title' (optional): The section's title."
+
+                "Additionally, return:"
+
+                    "- 'meeting': The extracted meeting name."
+
+                    "- 'document_number': The extracted document number."
+
             ),
             ("human", "{text}"),
         ]

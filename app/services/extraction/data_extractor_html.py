@@ -45,6 +45,10 @@ def extract_sections_llm(filename):
             new_p.string = limited_text
             # Append the new <p> element to clean_soup
             clean_soup.append(new_p)
+     # Create a header with the filename
+    filename_header = clean_soup.new_tag('h2')
+    filename_header.string = f"Extracted from: {os.path.basename(filename)}"
+    clean_soup.insert(0, filename_header)  # Insert the header at the beginning
 
     # Get the cleaned HTML content as text
     cleaned_html_content = str(clean_soup)

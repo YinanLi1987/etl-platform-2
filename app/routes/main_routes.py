@@ -2,8 +2,8 @@
 
 from flask import Blueprint, Blueprint, request, jsonify, render_template,current_app
 
-from app.services.link_extractor.meeting_extractor import MeetingLinkExtractor
-from app.services.link_extractor.cr_links_extractor import CRZipLinkExtractor 
+from app.services.downloader.meeting_extractor import MeetingLinkExtractor
+from app.services.downloader.cr_links_extractor import CRZipLinkExtractor 
 from app.services.downloader.downloader import CRZipDownloader
 from app.services.downloader.meeting_excel_downloader import ExcelDownloader 
 from app.services.extraction.unzipper import FileUnzipper

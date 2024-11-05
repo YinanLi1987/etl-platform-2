@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
@@ -33,7 +34,7 @@ class CRZipLinkExtractor:
         latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(self.meeting_links_folder, f)))
         return os.path.join(self.meeting_links_folder, latest_file)
     
-    def extract_cr_links(self, meeting_link):
+    def extract_cr_links(self, meeting_link,meeting_id):
         """Extract .zip links with allowed prefixes from a meeting link's page."""
         try:
             response = requests.get(meeting_link, headers=self.headers)
@@ -52,7 +53,7 @@ class CRZipLinkExtractor:
             href = a_tag['href']
             if href.endswith('.zip') and any(prefix in href for prefix in self.allowed_prefixes):
                 full_url = urljoin(self.base_url, href)
-                cr_links.append(full_url)
+                cr_links.append((meeting_id,full_url))
 
         return cr_links
     
@@ -80,11 +81,24 @@ class CRZipLinkExtractor:
                 # Extract CR links from each meeting link
         with open(output_file, 'w') as cr_file:
             for meeting_link in meeting_links:
-                cr_links = self.extract_cr_links(meeting_link.strip())
+                meeting_link = meeting_link.strip()  # Clean up the link
+                # Use regex to extract meeting ID
+                match = re.search(r'meetingId=(\d+)', meeting_link)
+                if match:
+                    meeting_id = match.group(1)  # Get the meeting ID from the match
+                else:
+                    current_app.logger.warning(f"No meeting ID found for URL: {meeting_link}")
+                    continue  # Skip this link if no meeting ID is found
+
+
+
+
+                cr_links = self.extract_cr_links(meeting_link.strip(),meeting_id)
                 if cr_links:
                     cr_links_extracted += len(cr_links)
                     valid_meeting_links.append(meeting_link)
-                    cr_file.write('\n'.join(cr_links) + '\n')
+                    for cr_link in cr_links:
+                        cr_file.write(f"{cr_link[0]}: {cr_link[1]}\n") 
                 else:
                     meeting_links_removed += 1
 
