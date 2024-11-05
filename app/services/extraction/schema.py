@@ -9,3 +9,5 @@ class Section(BaseModel):
 # Define a Sections wrapper model to handle multiple sections
 class Sections(BaseModel):
     sections: List[Section]
+    meeting: Optional[str] = Field(default=None, description="The name of the meeting")
+    document_number: Optional[str] = Field(default=None, description="The document number, if available")

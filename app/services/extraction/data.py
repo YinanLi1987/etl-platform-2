@@ -1,5 +1,6 @@
 
 extracted_data = {
+    "meeting_id":None,
     "meeting": None,
     "document_number": None,
     "location": None,
@@ -27,16 +28,18 @@ extracted_data = {
     "other_comments": None,
     "This CR's revision history": None,
     "sections": [],
-    "change_links":[]
+    "change_links":[],
+  
 }
 
 pdf_patterns = {
+        
         "meeting": r"(3GPP TSG-[^\s]+(?: [A-Za-z0-9]+)? Meeting #\s*\d+)\s+(R\d+-\d+)",
         "document_number": r"Meeting #\s*\d+\s+(R\d+-\d+)",
         "location": r"([A-Za-z\s]+,\s[A-Za-z\s]+)",  
         "dates": r"([A-Za-z\s]+,\s[A-Za-z\s]+),\s*(.*)",
         "form_version": r"CR-Form\s*[-–]?\s*v?\s*(\d+\.\d+)", 
-        "affected_spec": r"(\d{2}\.\d{3}-\d+)",
+        "affected_spec": r"(\d{2}\.\d{3})\s+CR",
         "cr_number": r"CR\s*(\d+)",  
         "revision": r"rev\s*\s*([\d-]*)",
         "current_version": r"Current version:\s+([\d.]+)",
@@ -50,7 +53,7 @@ pdf_patterns = {
         "release": r"Release:\s+Rel-(\d+)",
         "reason_for_change": r"Reason for change:\s+([\s\S]+?)(?=Summary of change)",
         "summary_of_change": r"Summary of change\s*:\s*([\s\S]+?)(?=Consequences if not)",
-        "consequences_if_not_approved": r"Consequences if not\s+approved:\s+([\s\S]+?)(?=Clauses affected)",
+        "consequences_if_not_approved": r"Consequences if not\s*approved:\s*([\s\S]+?)(?=\bClauses affected\b|$)",
         "affected_clauses": r"Clauses affected:\s+(.+)",
         "other_core_specs_affected": r"Other core specifications\s+([\s\S]+?)(?=Test specifications|O&M Specifications|$)",
         "other_test_specs_affected": r"Test specifications\s+([\s\S]+?)(?=O&M Specifications|$)",
