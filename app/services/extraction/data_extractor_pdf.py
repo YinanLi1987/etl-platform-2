@@ -31,28 +31,33 @@ def extract_data_from_pdf(text):
     #print("Extracted Text from PDF:", text)
     # Loop through patterns and assign matches to `data`
     for field, pattern in pdf_patterns.items():
-        match = re.search(pattern, text)
+        match = re.search(pattern, text, re.DOTALL)
         #print(f"Checking field '{field}' with pattern '{pattern}'...")  # Log the field and pattern
         if match:
             #print(f"Match found for field '{field}': {match.groups()}")  # Log the match
             if field == "proposed_change_affects":
                 options_line = match.group(1).strip()
                 #print(options_line)
-                options = options_line.split()
+                options = ["UICC apps", "ME", "Radio Access Network", "Core Network"]
+                #options = options_line.split()
                 checked_options = []
-                for i in range(len(options)):
-                    if 'X' in options[i]:
-                        if i > 0:
-                            checked_options.append(options[i - 1]) 
+                for option in options:
+                # Create a regex pattern to match each option with an optional trailing "X"
+                    pattern = rf"{option}\s*X?"
+                    found = re.search(pattern, options_line)
+                
+                # If 'X' is found right after the option, add it to checked_options
+                    if found and found.group(0).endswith("X"):
+                        checked_options.append(option)
                 data[field] = checked_options 
             else:
                 if field == "dates":
                     data[field] = match.group(2).strip()  
                 else:
                     data[field] = match.group(1).strip() 
-        else:
+        #else:
             # Log if the pattern was not found
-            print(f"No match for field '{field}' using pattern '{pattern}'.")
+            #print(f"No match for field '{field}' using pattern '{pattern}'.")
 
     # Log the data extracted
     #print("Extracted Data:", data)
