@@ -8,6 +8,7 @@ from app.services.downloader.downloader import CRZipDownloader
 from app.services.downloader.meeting_excel_downloader import ExcelDownloader 
 from app.services.extraction.unzipper import FileUnzipper
 from app.services.extraction.data_extractor_pdf import process_file_and_update_json
+from app.services.transformation.transformer import clean_json_cr
 
 import os
 import json
@@ -138,3 +139,23 @@ def convert_file():
     except Exception as e:
         current_app.logger.error(f"Error during file conversion: {str(e)}")
         return jsonify({"error": "An error occurred during file conversion."}), 500
+    
+@process_bp.route('/clean_data', methods=['POST'])
+def clean_data():
+            # Define the path to the JSON file that needs cleaning
+    input_folder="data/extracted_data/"
+    output_folder="data/clean_cr_json/"
+    try:
+
+   
+        # Ensure output folders exist
+        os.makedirs(output_folder, exist_ok=True)
+
+        # Call the update function to clean the JSON file
+        clean_json_cr(input_folder,output_folder)
+
+        return jsonify({"message": "Data cleaning process completed successfully."})
+    
+    except Exception as e:
+        current_app.logger.error(f"Error during data cleaning: {str(e)}")
+        return jsonify({"error": "An error occurred during the data cleaning process."}), 500

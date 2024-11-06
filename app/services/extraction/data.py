@@ -26,7 +26,7 @@ extracted_data = {
     "other_test_specs_affected": None,
     "other_o_m_specs_affected": None,
     "other_comments": None,
-    "This CR's revision history": None,
+    "this_CR_revision_history": None,
     "sections": [],
     "change_links":[],
   
@@ -59,5 +59,5 @@ pdf_patterns = {
         "other_test_specs_affected": r"Test specifications\s+([\s\S]+?)(?=O&M Specifications|$)",
         "other_o_m_specs_affected": r"O&M Specifications\s+([\s\S]+?)(?=$|Other comments:)",
         "other_comments": r"Other comments:\s+([\s\S]+?)(?=This CR's revision history)",
-        "This CR's revision history":r"This CR's revision history:\s+([\s\S]+?)(?=hange)"
+        "this_CR_revision_history":r"This CR's revision history:\s+([\s\S]+?)(?=hange)"
     }
