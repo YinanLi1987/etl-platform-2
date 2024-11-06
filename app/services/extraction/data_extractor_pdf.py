@@ -31,7 +31,7 @@ def extract_data_from_pdf(text):
     #print("Extracted Text from PDF:", text)
     # Loop through patterns and assign matches to `data`
     for field, pattern in pdf_patterns.items():
-        match = re.search(pattern, text)
+        match = re.search(pattern, text, re.DOTALL)
         #print(f"Checking field '{field}' with pattern '{pattern}'...")  # Log the field and pattern
         if match:
             #print(f"Match found for field '{field}': {match.groups()}")  # Log the match
@@ -55,9 +55,9 @@ def extract_data_from_pdf(text):
                     data[field] = match.group(2).strip()  
                 else:
                     data[field] = match.group(1).strip() 
-        else:
+        #else:
             # Log if the pattern was not found
-            print(f"No match for field '{field}' using pattern '{pattern}'.")
+            #print(f"No match for field '{field}' using pattern '{pattern}'.")
 
     # Log the data extracted
     #print("Extracted Data:", data)
