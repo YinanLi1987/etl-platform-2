@@ -7,10 +7,9 @@ from app.services.transformation.cleaner_cr_prompt import clean_cr_prompt_text
 
 
 
-def clean_cr_json_llm(json_file_path):
+def clean_cr_json_llm(json_data):
     # Load JSON data from file
-    with open(json_file_path, 'r') as file:
-        json_data = json.load(file)
+ 
     
     # Convert JSON data to a pretty-printed string
     text = json.dumps(json_data, indent=2)

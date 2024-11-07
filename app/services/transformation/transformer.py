@@ -2,9 +2,9 @@ import os
 import json
 from app.services.transformation.llm_cleaner import clean_cr_json_llm  # Ensure this function is correctly imported
 
-def clean_json_cr(input_folder: str, output_folder: str) -> None:
+def clean_json_cr(input_folder, output_folder):
   
-
+    print(input_folder)
     # Iterate through each file in the input folder
     for filename in os.listdir(input_folder):
         if filename.endswith('.json'):
