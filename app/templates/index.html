@@ -42,6 +42,10 @@
     <button id="convert-file-button">Convert File</button>
     <div id="convert-file-result"></div>
 
+    <h2>Clean Data</h2>
+    <button id="clean-data-button">Start Cleaning Process</button>
+    <div id="clean-data-result"></div>
+
     <script>
         $(document).ready(function() {
             $('#extract-form').on('submit', function(e) {
@@ -64,7 +68,7 @@
 
 
          // Event handler for CR Links Extraction button
-         $('#extract-cr-button').on('click', function() {
+            $('#extract-cr-button').on('click', function() {
                 // Send POST request for CR links extraction
                 $.post('/extract_cr_links', function(response) {
                     $('#cr-extract-status').text(
@@ -78,7 +82,7 @@
             });
 
          // Event handler for download button
-         $('#download-all-button').on('click', function() {
+            $('#download-all-button').on('click', function() {
                 $.post('/download_all_files', function(response) {
                     if (response.error) {
                         $('#download-result').text(response.error);
@@ -107,16 +111,7 @@
                     $('#unzip-result').text('An error occurred during unzipping.');
                 });
             });
- // Event handler for Unzip Files button
-            $('#unzip-button').on('click', function() {
-                $.post('/unzip_files', function(response) {
-                    $('#unzip-result').html(
-                        `<p>Successfully unzipped: ${response.unzipped_files_count} files.</p>`
-                    );
-                }).fail(function(xhr) {
-                    $('#unzip-result').text('An error occurred during unzipping.');
-                });
-            });
+ 
 // Event handler for Convert File button
             $('#convert-file-button').on('click', function() {
                 $.post('/convert_file', function(response) {
@@ -124,6 +119,16 @@
                 }).fail(function(xhr) {
                     const errorMessage = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred during file conversion.';
                     $('#convert-file-result').text(errorMessage);
+                });
+            });
+// Event handler for Clean Data button
+            $('#clean-data-button').on('click', function() {
+                // Send POST request to trigger the cleaning process
+                $.post('/clean_data', function(response) {
+                    $('#clean-data-result').text(response.message);
+                }).fail(function(xhr) {
+                    const errorMessage = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred during cleaning.';
+                    $('#clean-data-result').text(errorMessage);
                 });
             });
 
