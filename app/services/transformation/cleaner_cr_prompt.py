@@ -12,7 +12,7 @@ clean_cr_prompt_text=(
                 
                 "3. 'location': Format as 'City Name, Country Name'. Correct any typos in city or country names and remove extraneous text.\n\n"
                 
-                "4. 'dates': Format as 'dd-mm - dd-mm yyyy'. Remove any extraneous text.\n"
+                "4. 'dates': Format as 'dd/mm-dd/mm yyyy'. Remove any extraneous text.\n"
                 
                 "5. 'title': Replace any Unicode quotation marks (e.g., \u201c and \u201d) with standard double quotation marks (\"). "
                 "Remove any unnecessary newline characters (\n) for consistency.\n"

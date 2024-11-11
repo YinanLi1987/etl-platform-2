@@ -45,6 +45,9 @@
     <h2>Clean Data</h2>
     <button id="clean-data-button">Start Cleaning Process</button>
     <div id="clean-data-result"></div>
+    <h2>Validate Cleaned JSON Data</h2>
+    <button id="validate-data-button">Validate Cleaned Data</button>
+    <div id="validation-result"></div>
 
     <script>
         $(document).ready(function() {
@@ -154,7 +157,24 @@
                     $('#download-meeting-excel-result').text('An error occurred during the meeting Excel download.');
                 });
             });
-
+            // Event handler for Validate Data button
+            $('#validate-data-button').on('click', function() {
+                $.post('/validate_cleaned_data', function(response) {
+                    if (response.invalid_files) {
+                        let resultHtml = `<p>${response.message}</p><ul>`;
+                        response.invalid_files.forEach(file => {
+                            resultHtml += `<li>${file.filename} - Errors: ${file.errors.join(', ')}</li>`;
+                        });
+                        resultHtml += `</ul>`;
+                        $('#validation-result').html(resultHtml);
+                    } else {
+                        $('#validation-result').text(response.message);
+                    }
+                }).fail(function(xhr) {
+                    const errorMessage = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred during validation.';
+                    $('#validation-result').text(errorMessage);
+                });
+            });
         });
     </script>
 </body>

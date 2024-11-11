@@ -9,9 +9,11 @@ from app.services.downloader.meeting_excel_downloader import ExcelDownloader
 from app.services.extraction.unzipper import FileUnzipper
 from app.services.extraction.data_extractor_pdf import process_file_and_update_json
 from app.services.transformation.transformer import clean_json_cr
+from app.services.validation.json_validater import validate_json
 
 import os
 import json
+import shutil
 from datetime import datetime
 from dotenv import load_dotenv
 # Load environment variables
@@ -159,3 +161,36 @@ def clean_data():
     except Exception as e:
         current_app.logger.error(f"Error during data cleaning: {str(e)}")
         return jsonify({"error": "An error occurred during the data cleaning process."}), 500
+    
+
+@process_bp.route('/validate_cleaned_data', methods=['POST'])
+def validate_cleaned_data():
+    input_folder = "data/clean_cr_json/"
+    invalid_folder = "data/invalid_cleaned_json/"
+    os.makedirs(invalid_folder, exist_ok=True)
+
+   
+# Loop through all files in the input folder
+    for filename in os.listdir(input_folder):
+        if filename.endswith('.json'):  # Only process JSON files
+            file_path = os.path.join(input_folder, filename)
+
+            # Read the JSON file
+            with open(file_path, 'r') as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    print(f"Skipping invalid JSON file: {filename}")
+                    continue  # Skip the file if it's not a valid JSON
+
+            # Validate the JSON file
+            valid, error_msg = validate_json(data)
+            if not valid:
+                # If validation fails, move the file to the invalid folder
+                invalid_file_path = os.path.join(invalid_folder, filename)
+                shutil.move(file_path, invalid_file_path)
+                print(f"Moved invalid file: {filename} to invalid folder. Reason: {error_msg}")
+            else:
+                print(f"Validated successfully: {filename}")
+
+    return "Validation complete"

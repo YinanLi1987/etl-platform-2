@@ -82,7 +82,8 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
     match = re.match(r"(\d+)_", os.path.basename(input_file))
     meeting_id = match.group(1) if match else "unknown"
     #print(meeting_id)
- 
+        # Check if 'form_version' is missing or None in the extracted data
+
     # Convert DOCX file to PDF
     pdf_path = convert_to_pdf_with_unoconv(input_file, converted_folder)
     if pdf_path is None:
@@ -95,6 +96,12 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
 
     # Extract data from text
     data = extract_data_from_pdf(text)
+         # Check if 'form_version' is missing or None in the extracted data
+    if not data.get("form_version"):
+        print("Form version is missing or None, deleting the original PDF.")
+        # If form_version is missing or None, delete the original PDF file and do not create a JSON file
+        os.remove(input_file)  # Remove the original input PDF file
+        return  # Exit without processing further
     # Add the meeting_id to the extracted data
     data["meeting_id"] = meeting_id
 
