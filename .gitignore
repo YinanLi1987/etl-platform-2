@@ -2,6 +2,10 @@
 app/__pycache__/
 app/processes/__pycache__/
 app/routes/__pycache__/
+app/services/__pycache__/
+app/services/downloader/__pycache__/
+app/services/extraction/__pycache__/
+app/services/validation/__pycache__/
 preprocessed/
 extracted01/
 extracted02/
@@ -23,3 +27,4 @@ Thumbs.db
 
 # Environment files
 .env
+config.py
