@@ -9,10 +9,11 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
-BASE_URLS = os.getenv('BASE_URLS').split(',')
+WG_BASE_URLS = os.getenv('WG_BASE_URLS').split(',')
+TSG_BASE_URLS=os.getenv('TSG_BASE_URLS').split(',')
 DOCUMENT_LINK_BASE = os.getenv('DOCUMENT_LINK_BASE')
 MEETING_EXCEL_LINK_BASE=os.getenv('WG_MEETING_EXCEL_LINK_BASE')
-TSG_BASE_URLS=os.getenv('TSG_BASE_URLS').split(',')
+
 #print(WG_MEETING_EXCEL_LINK_BASE)
 
 class MeetingLinkExtractor:
@@ -85,7 +86,7 @@ class MeetingLinkExtractor:
         all_tsg_excel_links = [] # To store tsg meeting excel links
 
 
-        for url in BASE_URLS:
+        for url in WG_BASE_URLS:
             # Step 1: Download page for each base URL
             #print(f"Processing {url}...")
             main_page_html = self.download_html(url)

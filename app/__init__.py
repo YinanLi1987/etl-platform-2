@@ -13,7 +13,7 @@ def create_app():
     # Load environment variables
     load_dotenv()
     # Load other necessary environment variables
-    app.config['BASE_URLS'] = os.getenv('BASE_URLS').split(',')
+    app.config['WG_BASE_URLS'] = os.getenv('WG_BASE_URLS').split(',')
     app.config['DOCUMENT_LINK_BASE'] = os.getenv('DOCUMENT_LINK_BASE')
     app.config['USER_AGENT'] = os.getenv('USER_AGENT')  # Add user-agent from .env
     app.config['ALLOWED_PREFIXES'] = os.getenv('ALLOWED_PREFIXES').split(',')  # Load prefixes

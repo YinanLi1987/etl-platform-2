@@ -2,9 +2,10 @@
 
 from flask import Blueprint, Blueprint, request, jsonify, render_template,current_app
 
-from app.services.downloader.meeting_extractor import MeetingLinkExtractor
-from app.services.downloader.cr_links_extractor import CRZipLinkExtractor 
-from app.services.downloader.downloader import CRZipDownloader
+from app.services.downloader.cr_downloader.meeting_cr_list_extractor import MeetingLinkExtractor
+from app.services.downloader.link_extractor import LinkExtractor
+from app.services.downloader.cr_downloader.cr_links_extractor import CRZipLinkExtractor 
+from app.services.downloader.cr_downloader.cr_downloader import CRZipDownloader
 from app.services.downloader.meeting_excel_downloader import ExcelDownloader 
 from app.services.extraction.unzipper import FileUnzipper
 from app.services.extraction.data_extractor_pdf import process_file_and_update_json
@@ -23,27 +24,26 @@ process_bp = Blueprint('process_bp', __name__)
 
 @process_bp.route("/")
 def index():
-            # Load existing links and get the total count and last updated date
-    extractor = MeetingLinkExtractor()
-    extractor.load_existing_links()  # Load existing links to get count and last update
-    total_links = len(extractor.existing_links)
+
     last_updated = max(
         [f for f in os.listdir('data/meeting_links') if f.endswith('.txt')],
         key=lambda f: os.path.getmtime(os.path.join('data/meeting_links', f)),
         default="No files found"
     )
-    return render_template('index.html', total_links=total_links, last_updated=last_updated)
+    return render_template('index.html',  last_updated=last_updated)
 
 
 @process_bp.route('/extract_links', methods=['POST'])
 def extract_links():
-    extractor = MeetingLinkExtractor()  # Instantiate without arguments
-    new_links_count, date_str = extractor.run()
-
-    # Return a JSON response with the number of new links extracted
+    extractor = LinkExtractor()
+    link_counts = extractor.run()
+    # Return JSON with the number of each type of link extracted and the date
     return jsonify({
-        'new_links_count': new_links_count,
-        'date_str': date_str
+        'wg_zip_count': link_counts['wg_zip_count'],
+        'tsg_zip_count': link_counts['tsg_zip_count'],
+        'wg_excel_count': link_counts['wg_excel_count'],
+        'tsg_excel_count': link_counts['tsg_excel_count'],
+        'date_str': link_counts['date_str']
     })
 
 @process_bp.route('/extract_cr_links', methods=['POST'])
@@ -81,7 +81,7 @@ def download_all_files():
 def unzip_files():
     try:
         # Specify your download and temp folder paths
-        download_folder = "data/downloads"  # Adjust this to your actual path
+        download_folder = "/Users/yinanli/Documents/OAMK/THESIS/test/test_1000/downloads"  # Adjust this to your actual path
         temp_folder = "data/temp"  # Adjust this to your actual path
         unzipper = FileUnzipper(download_folder, temp_folder)
         
