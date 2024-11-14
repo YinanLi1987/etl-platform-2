@@ -4,7 +4,7 @@ from flask import Blueprint, Blueprint, request, jsonify, render_template,curren
 
 from app.services.downloader.cr_downloader.meeting_cr_list_extractor import MeetingLinkExtractor
 from app.services.downloader.link_extractor import LinkExtractor
-from app.services.downloader.cr_downloader.cr_links_extractor import CRZipLinkExtractor 
+from app.services.downloader.link_downloader import LinkDownloader
 from app.services.downloader.cr_downloader.cr_downloader import CRZipDownloader
 from app.services.downloader.meeting_excel_downloader import ExcelDownloader 
 from app.services.extraction.unzipper import FileUnzipper
@@ -46,36 +46,25 @@ def extract_links():
         'date_str': link_counts['date_str']
     })
 
-@process_bp.route('/extract_cr_links', methods=['POST'])
-def extract_cr_links():
-    try:
-        # Instantiate the CRLinkExtractor (or a function that processes CR links)
-        cr_extractor = CRZipLinkExtractor()
-        cr_links_extracted, meeting_links_removed = cr_extractor.run()
-
-        # Return a JSON response with extracted CR links count and removed meeting links count
-        return jsonify({
-            'cr_links_extracted': cr_links_extracted,
-            'meeting_links_removed': meeting_links_removed
-        })
-
-    except Exception as e:
-        current_app.logger.error(f"Error in CR link extraction: {str(e)}")
-        return jsonify({"error": "An error occurred during CR link extraction."}), 500
-
 @process_bp.route('/download_all_files', methods=['POST'])
 def download_all_files():
-    downloader = CRZipDownloader()
+    downloader = LinkDownloader()
     try:
-        successful_downloads, failed_downloads = downloader.download_all_files()
+        # Download all files and get the result with counts of each category
+        download_counts = downloader.run()
+        
+        # Return counts for each category
         return jsonify({
-            'success_count': successful_downloads,
-            'failed_files': failed_downloads,
-            'failed_count': len(failed_downloads)
+            'tsg_excel_count': download_counts['tsg_excel_links'],
+            'wg_excel_count': download_counts['wg_excel_links'],
+            'wg_tdoc_count': download_counts['wg_tdoc_links'],
+            'failed_count': len(download_counts.get('failed_files', []))
         })
+        
     except Exception as e:
-        current_app.logger.error(f"Error in download process: {str(e)}")
+        # Handle any unexpected errors
         return jsonify({"error": "An error occurred during the download process."}), 500
+
     
 @process_bp.route('/unzip_files', methods=['POST'])
 def unzip_files():

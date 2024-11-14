@@ -25,14 +25,14 @@
     </div>
 
 
-    <!-- Add CR Links Extraction button -->
-    <h2>CR Document Extractor</h2>
-    <button id="extract-cr-button">Extract CR Links</button>
-    <div id="cr-extract-status"></div>
-
-    <h2>Download CR ZIP Files</h2>
-    <button id="download-all-button">Download ZIP Files</button>
+    <h2>Documents Downloader</h2>
+    <button id="download-all-button">Download</button>
     <div id="download-result"></div>
+    <div id="download-progress" style="margin-top: 20px;">
+        <p>TSG Excel Files: <span id="tsg-excel-downloaded">0</span></p>
+        <p>WG Excel Files: <span id="wg-excel-downloaded">0</span></p>
+        <p>WG Tdoc Files: <span id="wg-tdoc-downloaded">0</span></p>
+    </div>
 
     <h2>Unzip Files</h2>
     <button id="unzip-button">Unzip Files</button>
@@ -67,21 +67,6 @@
                 });
             });
 
-
-         // Event handler for CR Links Extraction button
-            $('#extract-cr-button').on('click', function() {
-                // Send POST request for CR links extraction
-                $.post('/extract_cr_links', function(response) {
-                    $('#cr-extract-status').text(
-                        `${response.cr_links_extracted} CR links extracted. ` +
-                        `${response.meeting_links_removed} meeting links removed (no CR links found).`
-                    );
-                })
-                .fail(function(xhr) {
-                    $('#cr-extract-status').text('An error occurred during CR links extraction.');
-                });
-            });
-
          // Event handler for download button
             $('#download-all-button').on('click', function() {
                 $.post('/download_all_files', function(response) {
@@ -89,8 +74,9 @@
                         $('#download-result').text(response.error);
                     } else {
                         $('#download-result').html(
-                            `<p>Successfully downloaded: ${response.success_count} files</p>` +
-                            `<p>Failed to download: ${response.failed_count} files</p>`
+                            `<p>TSG Excel Files Downloaded: ${response.tsg_excel_count}</p>` +
+                            `<p>WG Excel Files Downloaded: ${response.wg_excel_count}</p>` +
+                            `<p>WG Tdoc Files Downloaded: ${response.wg_tdoc_count}</p>`
                         );
                         if (response.failed_files.length > 0) {
                             $('#download-result').append(
