@@ -26,8 +26,8 @@ process_bp = Blueprint('process_bp', __name__)
 def index():
 
     last_updated = max(
-        [f for f in os.listdir('data/meeting_links') if f.endswith('.txt')],
-        key=lambda f: os.path.getmtime(os.path.join('data/meeting_links', f)),
+        [f for f in os.listdir('data/download_links/tsg_excel_links') if f.endswith('.txt')],
+        key=lambda f: os.path.getmtime(os.path.join('data/download_links/tsg_excel_links', f)),
         default="No files found"
     )
     return render_template('index.html',  last_updated=last_updated)
