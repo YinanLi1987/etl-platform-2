@@ -100,10 +100,21 @@ class LinkDownloader:
             if not links:
                 print(f"No valid links found in file {latest_file}")
                 continue
+                # Limit to the first 300 links
+            links_to_process = links[:300]
 
-            for meeting_id, url in links:
-                # Construct the filename as meetingid.xlsx
-                filename = f"{meeting_id}.xlsx"
+
+            for meeting_id, url in links_to_process:
+                if is_tdoc:
+                    # For wg_tdoc links, extract the tdocnumber from the URL.
+                    # The tdocnumber seems to be the last part of the path, before the file extension
+                    tdoc_number = url.split("/")[-1].split(".")[0]
+                    file_ext = os.path.splitext(url.split("/")[-1])[-1]  # Get the file extension (e.g., .zip)
+                    filename = f"{meeting_id}_{tdoc_number}{file_ext}"  # Format: meetingid_tdocnumber.ext
+                else:
+                    # For Excel links, name the file as meeting_id.xlsx
+                    filename = f"{meeting_id}.xlsx"
+
                 output_path = os.path.join(self.output_folders[key], filename)
                 
                 # Attempt to download the file and track success or failure
