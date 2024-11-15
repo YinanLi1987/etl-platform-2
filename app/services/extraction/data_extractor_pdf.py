@@ -69,13 +69,7 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
     """
     Convert a DOC/DOCX file to PDF, extract data from the PDF, and save as JSON.
     """
-    try:
-        # Ensure output folders exist
-        os.makedirs(converted_folder, exist_ok=True)
-        os.makedirs(json_folder, exist_ok=True)
-    except Exception as e:
-        print(f"Error creating directories: {e}")
-        return
+   
     document_number = os.path.splitext(os.path.basename(input_file))[0] 
     #print(document_number)
     # Extract meeting_id from filename (numeric prefix before "_")

@@ -4,7 +4,7 @@ from flask import Blueprint, Blueprint, request, jsonify, render_template,curren
 
 from app.services.downloader.link_extractor import LinkExtractor
 from app.services.downloader.link_downloader import LinkDownloader
-from app.services.downloader.unzipper import FileUnzipperFilter
+from app.services.downloader.unzipper_filter import FileUnzipperFilter
 from app.services.extraction.data_extractor_pdf import process_file_and_update_json
 from app.services.transformation.transformer import clean_json_cr
 from app.services.validation.json_validater import validate_json
@@ -87,9 +87,9 @@ def unzip_files():
 @process_bp.route('/convert_file', methods=['POST'])
 def convert_file():
     #input_file = "data/temp/unzip/C1-245945_was_C1-245892_was_C1-245482_PROSE_Ph3_UpdPolProv.docx"  # Change this to the appropriate path if necessary
-    input_folder = "data/download_files/wg_tdoc"  # Folder containing the DOCX files
-    converted_folder = "data/temp/converted_pdf"  # Folder to save converted PDFs
-    json_folder = "data/extracted_data/"  # Folder to save extracted JSON data
+    input_folder = "data/download_files/temp/unzip"  # Folder containing the DOCX files
+    converted_folder = "data/download_files/temp/converted_pdf"  # Folder to save converted PDFs
+    json_folder = "data/extracted_json/"  # Folder to save extracted JSON data
 
     try:
         # Ensure output folders exist

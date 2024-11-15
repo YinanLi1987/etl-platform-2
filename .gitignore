@@ -6,6 +6,7 @@ app/services/__pycache__/
 app/services/downloader/__pycache__/
 app/services/extraction/__pycache__/
 app/services/validation/__pycache__/
+app/services/extraction/data_extractor_image.py
 preprocessed/
 extracted01/
 extracted02/
