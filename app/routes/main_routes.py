@@ -4,7 +4,7 @@ from flask import Blueprint, Blueprint, request, jsonify, render_template,curren
 
 from app.services.downloader.link_extractor import LinkExtractor
 from app.services.downloader.link_downloader import LinkDownloader
-from app.services.extraction.unzipper import FileUnzipper
+from app.services.downloader.unzipper import FileUnzipperFilter
 from app.services.extraction.data_extractor_pdf import process_file_and_update_json
 from app.services.transformation.transformer import clean_json_cr
 from app.services.validation.json_validater import validate_json
@@ -67,17 +67,15 @@ def download_all_files():
 def unzip_files():
     try:
         # Specify your download and temp folder paths
-        download_folder = "/Users/yinanli/Documents/OAMK/THESIS/test/test_1000/downloads"  # Adjust this to your actual path
-        temp_folder = "data/temp"  # Adjust this to your actual path
-        unzipper = FileUnzipper(download_folder, temp_folder)
+        download_folder = "data/download_files/wg_tdoc"  # Adjust this to your actual path
+        temp_folder = "data/download_files/temp"  # Adjust this to your actual path
+        unzipper = FileUnzipperFilter(download_folder, temp_folder)
         
         # Call the unzip method and get the count
         unzipper.unzip_files()
         
-        # Count the number of unzipped files
-        unzipped_files_count = len(list(unzipper.unzip_folder.glob("*")))  # Count files in the unzip folder
-        
-        return jsonify({'unzipped_files_count': unzipped_files_count})
+        #
+        return jsonify({'unzipped completed.'})
     except Exception as e:
         current_app.logger.error(f"Error during unzipping: {str(e)}")
         return jsonify({"error": "An error occurred during the unzipping process."}), 500
@@ -86,11 +84,10 @@ def unzip_files():
 
 
 
-
 @process_bp.route('/convert_file', methods=['POST'])
 def convert_file():
     #input_file = "data/temp/unzip/C1-245945_was_C1-245892_was_C1-245482_PROSE_Ph3_UpdPolProv.docx"  # Change this to the appropriate path if necessary
-    input_folder = "data/temp/unzip/"  # Folder containing the DOCX files
+    input_folder = "data/download_files/wg_tdoc"  # Folder containing the DOCX files
     converted_folder = "data/temp/converted_pdf"  # Folder to save converted PDFs
     json_folder = "data/extracted_data/"  # Folder to save extracted JSON data
 
