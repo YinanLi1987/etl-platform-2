@@ -3,15 +3,12 @@ from pathlib import Path
 import re
 import shutil
 from docx import Document
+from dir_manage import (WG_TDOC_FOLDER,UNZIP_FILES_FOLDER)
 
 class FileUnzipperFilter:
-    def __init__(self, download_folder, temp_folder):
-        self.download_folder = Path(download_folder)
-        self.temp_folder = Path(temp_folder)
-        
-        # Define specific folders for unzipped files
-        self.unzip_folder = self.temp_folder / 'unzip'
-
+    def __init__(self):
+        self.download_folder = Path(WG_TDOC_FOLDER)
+        self.unzip_folder= Path(UNZIP_FILES_FOLDER)
         # Create necessary folders if they do not exist
         self.unzip_folder.mkdir(parents=True, exist_ok=True)
 

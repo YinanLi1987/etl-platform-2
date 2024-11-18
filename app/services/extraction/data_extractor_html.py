@@ -1,6 +1,7 @@
 import os
 import pypandoc
 from bs4 import BeautifulSoup
+from pathlib import Path
 from app.services.extraction.llm_extractor import extract_section_data
 
 
@@ -15,13 +16,26 @@ def extract_sections_llm(filename):
         tuple: A tuple containing the cleaned HTML content and the extracted sections data.
     """
     # Check if the file exists
-    if not os.path.exists(filename):
+    file_path = Path(filename)
+    print(file_path)
+    
+      # Check if the file exists
+    if not file_path.exists():
         print(f"File {filename} does not exist.")
         return None, None
+    print(f"File path: {file_path}")
+    print(f"File exists: {file_path.exists()}")
+    print(f"File is file: {file_path.is_file()}")
 
     # Convert the DOCX file to HTML and get the output as a string
-    html_content = pypandoc.convert_file(filename, 'html')
+    try:
+        html_content = pypandoc.convert_file(str(file_path), 'html')
+        print(f"HTML content length: {len(html_content)}")
+    except Exception as e:
+        print(f"Error converting DOCX to HTML: {e}")
+    return None
     
+    print(str(html_content))
     # Use BeautifulSoup to parse and clean the HTML
     soup = BeautifulSoup(html_content, 'html.parser')
 
@@ -45,24 +59,13 @@ def extract_sections_llm(filename):
             new_p.string = limited_text
             # Append the new <p> element to clean_soup
             clean_soup.append(new_p)
-     # Create a header with the filename
+    
     filename_header = clean_soup.new_tag('h2')
     filename_header.string = f"Extracted from: {os.path.basename(filename)}"
     clean_soup.insert(0, filename_header)  # Insert the header at the beginning
-
-    # Get the cleaned HTML content as text
     cleaned_html_content = str(clean_soup)
-    # print(cleaned_html_content)
-    # Extract section titles and numbers from the cleaned HTML using the LLM
+
     sections_data = extract_section_data(cleaned_html_content)
-    # Print extracted sections
-    #print(f"Extracted sections for {filename}:")
-    #if sections_data and sections_data.sections:
-    #    for section in sections_data.sections:
-    #        print(f" - Section Number: {section.section_number}, Section Title: {section.section_title}")
-    #else:
-    #    print(f"No sections found in {filename}.")
-    #print("Conversion complete.")
-    #print(sections_data)
+
     
     return  sections_data

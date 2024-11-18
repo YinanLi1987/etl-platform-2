@@ -2,6 +2,7 @@
 app/__pycache__/
 app/processes/__pycache__/
 app/routes/__pycache__/
+dir_manage.py
 app/services/__pycache__/
 app/services/downloader/__pycache__/
 app/services/extraction/__pycache__/

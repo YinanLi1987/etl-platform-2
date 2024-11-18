@@ -1,14 +1,13 @@
 # app/routes/main_routes.py
 
 from flask import Blueprint, Blueprint, request, jsonify, render_template,current_app
-
+from pathlib import Path
 from app.services.downloader.link_extractor import LinkExtractor
 from app.services.downloader.link_downloader import LinkDownloader
 from app.services.downloader.unzipper_filter import FileUnzipperFilter
 from app.services.extraction.data_extractor_pdf import process_file_and_update_json
 from app.services.transformation.transformer import clean_json_cr
 from app.services.validation.json_validater import validate_json
-
 import os
 import json
 import shutil
@@ -16,6 +15,9 @@ from datetime import datetime
 from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
+from dir_manage import TSG_EXCEL_LINKS_FOLDER,UNZIP_FILES_FOLDER,CONVERTED_PDF_FOLDER ,EXTRACTED_JSON_FOLDER,CLEAN_JSON_FOLDER,VALIDATED_JSON_FOLDER,TEST_UNZIP_FILES_FOLDER
+
+
 
 process_bp = Blueprint('process_bp', __name__)
 
@@ -23,8 +25,8 @@ process_bp = Blueprint('process_bp', __name__)
 def index():
 
     last_updated = max(
-        [f for f in os.listdir('data/download_links/tsg_excel_links') if f.endswith('.txt')],
-        key=lambda f: os.path.getmtime(os.path.join('data/download_links/tsg_excel_links', f)),
+        [f for f in os.listdir(TSG_EXCEL_LINKS_FOLDER) if f.endswith('.txt')],
+        key=lambda f: os.path.getmtime(os.path.join(TSG_EXCEL_LINKS_FOLDER, f)),
         default="No files found"
     )
     return render_template('index.html',  last_updated=last_updated)
@@ -66,16 +68,10 @@ def download_all_files():
 @process_bp.route('/unzip_files', methods=['POST'])
 def unzip_files():
     try:
-        # Specify your download and temp folder paths
-        download_folder = "data/download_files/wg_tdoc"  # Adjust this to your actual path
-        temp_folder = "data/download_files/temp"  # Adjust this to your actual path
-        unzipper = FileUnzipperFilter(download_folder, temp_folder)
-        
+        unzipper = FileUnzipperFilter()
         # Call the unzip method and get the count
         unzipper.unzip_files()
-        
-        #
-        return jsonify({'unzipped completed.'})
+        return jsonify({'message': 'Unzipping completed.'})
     except Exception as e:
         current_app.logger.error(f"Error during unzipping: {str(e)}")
         return jsonify({"error": "An error occurred during the unzipping process."}), 500
@@ -87,44 +83,42 @@ def unzip_files():
 @process_bp.route('/convert_file', methods=['POST'])
 def convert_file():
     #input_file = "data/temp/unzip/C1-245945_was_C1-245892_was_C1-245482_PROSE_Ph3_UpdPolProv.docx"  # Change this to the appropriate path if necessary
-    input_folder = "data/download_files/temp/unzip"  # Folder containing the DOCX files
-    converted_folder = "data/download_files/temp/converted_pdf"  # Folder to save converted PDFs
-    json_folder = "data/extracted_json/"  # Folder to save extracted JSON data
+    #input_folder = Path(UNZIP_FILES_FOLDER) # Folder containing the DOCX files
+    input_folder = Path(TEST_UNZIP_FILES_FOLDER)
+    converted_folder = Path(CONVERTED_PDF_FOLDER) 
+    json_folder = Path(EXTRACTED_JSON_FOLDER)  # Folder to save extracted JSON data
 
     try:
         # Ensure output folders exist
-        os.makedirs(converted_folder, exist_ok=True)
-        os.makedirs(json_folder, exist_ok=True)
+        converted_folder.mkdir(parents=True, exist_ok=True)
+        json_folder.mkdir(parents=True, exist_ok=True)
 
-        # List all files in the input folder
-        for filename in os.listdir(input_folder):
-            # Process only .docx files
-            if filename.endswith('.docx'):
-                input_file = os.path.join(input_folder, filename)
-                current_app.logger.info(f"Processing file: {input_file}")
-                
-                # Call the function to process each file
-                process_file_and_update_json(input_file, converted_folder, json_folder)
+       # List all files in the input folder
+        for input_file in input_folder.glob('*.docx'):
+            current_app.logger.info(f"Processing file: {input_file}")
+
+            # Call the function to process each file
+            process_file_and_update_json(input_file, converted_folder, json_folder)
 
         return jsonify({"message": "File conversion and data extraction completed successfully."})
-    
+
     except Exception as e:
         current_app.logger.error(f"Error during file conversion: {str(e)}")
         return jsonify({"error": "An error occurred during file conversion."}), 500
+
     
 @process_bp.route('/clean_data', methods=['POST'])
 def clean_data():
             # Define the path to the JSON file that needs cleaning
-    input_folder="data/extracted_data/"
-    output_folder="data/clean_cr_json/"
+    input_folder = Path(EXTRACTED_JSON_FOLDER)
+    output_folder = Path(CLEAN_JSON_FOLDER)
     try:
 
    
-        # Ensure output folders exist
-        os.makedirs(output_folder, exist_ok=True)
+        output_folder.mkdir(parents=True, exist_ok=True)
 
         # Call the update function to clean the JSON file
-        clean_json_cr(input_folder,output_folder)
+        clean_json_cr(input_folder, output_folder)
 
         return jsonify({"message": "Data cleaning process completed successfully."})
     
@@ -135,9 +129,9 @@ def clean_data():
 
 @process_bp.route('/validate_cleaned_data', methods=['POST'])
 def validate_cleaned_data():
-    input_folder = "data/clean_cr_json/"
-    invalid_folder = "data/invalid_cleaned_json/"
-    os.makedirs(invalid_folder, exist_ok=True)
+    input_folder = Path(CLEAN_JSON_FOLDER)
+    invalid_folder = Path(VALIDATED_JSON_FOLDER)
+    invalid_folder.mkdir(parents=True, exist_ok=True)
 
    
 # Loop through all files in the input folder
