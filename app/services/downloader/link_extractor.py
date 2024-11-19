@@ -7,7 +7,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 import logging
 from config import load_headers
-
+from dir_manage import (
+    TSG_EXCEL_LINKS_FOLDER, TSG_MEETING_IDS_FOLDER, TSG_TDOC_LINKS_FOLDER,
+    WG_EXCEL_LINKS_FOLDER, WG_MEETING_IDS_FOLDER, WG_TDOC_LINKS_FOLDER
+)
 # Load environment variables from .env file
 load_dotenv()
 headers = load_headers()
@@ -29,12 +32,12 @@ class LinkExtractor:
         # Define the required output directories
         date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.output_dirs = {
-            "wg_meeting_ids": Path("data/download_links/wg_meeting_ids"),
-            "tsg_meeting_ids": Path("data/download_links/tsg_meeting_ids"),
-            "wg_tdoc_links": Path("data/download_links/wg_tdoc_links"),
-            "tsg_tdoc_links": Path("data/download_links/tsg_tdoc_links"),
-            "wg_excel_links": Path("data/download_links/wg_excel_links"),
-            "tsg_excel_links": Path("data/download_links/tsg_excel_links")
+            "wg_meeting_ids": Path(WG_MEETING_IDS_FOLDER),
+            "tsg_meeting_ids": Path(TSG_MEETING_IDS_FOLDER),
+            "wg_tdoc_links": Path(WG_TDOC_LINKS_FOLDER),
+            "tsg_tdoc_links": Path(TSG_TDOC_LINKS_FOLDER),
+            "wg_excel_links": Path(WG_EXCEL_LINKS_FOLDER),
+            "tsg_excel_links": Path(TSG_EXCEL_LINKS_FOLDER)
         }
 
         # Create directories if they don't exist

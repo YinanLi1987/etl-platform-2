@@ -6,6 +6,7 @@ import pdfplumber
 from app.services.extraction.data import extracted_data, pdf_patterns
 from app.services.extraction.data_extractor_html import extract_sections_llm
 from app.services.extraction.data_extractor_image import detect_and_crop_regions_from_pdf
+from pathlib import Path
 
 
 
@@ -13,12 +14,15 @@ def convert_to_pdf_with_unoconv(input_file, converted_folder):
     """
     Use unoconv (LibreOffice) to convert a DOC/DOCX file to PDF with tracked changes.
     """
+    input_file = Path(input_file)  # Convert input_file to a Path object
+    converted_folder = Path(converted_folder)  # Convert converted_folder to a Path object
 
-    filename = os.path.basename(input_file)
-    name, ext = os.path.splitext(filename)
-    output_pdf_path = os.path.join(converted_folder, f"{name}.pdf")
+    #filename = input_file.name  # Use `.name` to get the filename
+    #print(filename)
+    name, ext = input_file.stem, input_file.suffix  # `.stem` gives the filename without extension
+    output_pdf_path = converted_folder / f"{name}.pdf"  # Use `/` to join paths
     try:
-        subprocess.run(['unoconv', '-f', 'pdf', '-o', output_pdf_path, input_file], check=True)
+        subprocess.run(['unoconv', '-f', 'pdf', '-o', str(output_pdf_path), str(input_file)], check=True)
         print(f"Converted {input_file} to {output_pdf_path}")
         return output_pdf_path  # Return the path of the converted PDF
     except subprocess.CalledProcessError as e:
@@ -32,21 +36,14 @@ def extract_data_from_pdf(text):
     # Loop through patterns and assign matches to `data`
     for field, pattern in pdf_patterns.items():
         match = re.search(pattern, text, re.DOTALL)
-        #print(f"Checking field '{field}' with pattern '{pattern}'...")  # Log the field and pattern
         if match:
-            #print(f"Match found for field '{field}': {match.groups()}")  # Log the match
             if field == "proposed_change_affects":
                 options_line = match.group(1).strip()
-                #print(options_line)
                 options = ["UICC apps", "ME", "Radio Access Network", "Core Network"]
-                #options = options_line.split()
                 checked_options = []
                 for option in options:
-                # Create a regex pattern to match each option with an optional trailing "X"
                     pattern = rf"{option}\s*X?"
                     found = re.search(pattern, options_line)
-                
-                # If 'X' is found right after the option, add it to checked_options
                     if found and found.group(0).endswith("X"):
                         checked_options.append(option)
                 data[field] = checked_options 
@@ -55,13 +52,6 @@ def extract_data_from_pdf(text):
                     data[field] = match.group(2).strip()  
                 else:
                     data[field] = match.group(1).strip() 
-        #else:
-            # Log if the pattern was not found
-            #print(f"No match for field '{field}' using pattern '{pattern}'.")
-
-    # Log the data extracted
-    #print("Extracted Data:", data)
-
     return data
 
 
@@ -69,21 +59,15 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
     """
     Convert a DOC/DOCX file to PDF, extract data from the PDF, and save as JSON.
     """
-    try:
-        # Ensure output folders exist
-        os.makedirs(converted_folder, exist_ok=True)
-        os.makedirs(json_folder, exist_ok=True)
-    except Exception as e:
-        print(f"Error creating directories: {e}")
-        return
-    document_number = os.path.splitext(os.path.basename(input_file))[0] 
-    #print(document_number)
+    input_file = Path(input_file)  
+    converted_folder = Path(converted_folder)  
+    json_folder = Path(json_folder) 
+   
+    document_number = input_file.stem 
+    print(document_number)
     # Extract meeting_id from filename (numeric prefix before "_")
-    match = re.match(r"(\d+)_", os.path.basename(input_file))
+    match = re.match(r"(\d+)_", input_file.name)
     meeting_id = match.group(1) if match else "unknown"
-    #print(meeting_id)
-        # Check if 'form_version' is missing or None in the extracted data
-
     # Convert DOCX file to PDF
     pdf_path = convert_to_pdf_with_unoconv(input_file, converted_folder)
     if pdf_path is None:
@@ -100,22 +84,24 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
     if not data.get("form_version"):
         print("Form version is missing or None, deleting the original PDF.")
         # If form_version is missing or None, delete the original PDF file and do not create a JSON file
-        os.remove(input_file)  # Remove the original input PDF file
+        input_file.unlink()  # Remove the original input PDF file
         return  # Exit without processing further
     # Add the meeting_id to the extracted data
     data["meeting_id"] = meeting_id
 
     # Save extracted data to JSON
     json_filename = f"{document_number}.json" 
-    json_path = os.path.join(json_folder, json_filename)
+    json_path = json_folder / json_filename
     with open(json_path, "w", encoding='utf-8') as json_file:
         json.dump(data, json_file, indent=4)
-
+   
     print(f"Processed {input_file} and saved to {json_filename}")
     # Update JSON with sections data extracted from the DOCX file
+    
     update_json_with_sections(json_path, input_file)
+    
      # Detect colored regions, crop, and save URLs to JSON
-    output_dir = os.path.join(converted_folder, "cropped_images")
+    #output_dir = os.path.join(converted_folder, "cropped_images")
     #document_number = data.get("document_number", "unknown_document")
     #detect_and_crop_regions_from_pdf(pdf_path, output_dir, document_number, json_path)
 
@@ -129,9 +115,17 @@ def update_json_with_sections(json_filename, docx_filename):
         json_filename (str): The name of the JSON file to update.
         docx_filename (str): The name of the DOCX file to convert and extract data from.
     """
+    json_filename = Path(json_filename)  # Convert json_filename to a Path object
+  
+    docx_filename = Path(docx_filename) 
+    
+    #print(docx_filename)
     # Convert the DOCX file to cleaned HTML and extract sections data
-    sections_data = extract_sections_llm(docx_filename)
+    sections_data = extract_sections_llm(str(docx_filename))
+    
     #print(f"Type of sections_data: {type(sections_data)}") 
+    print(f"Type of sections_data.meeting: {type(sections_data.meeting)}")
+    print(f"Value of sections_data.meeting: {sections_data.meeting}")
 
     if sections_data is None:
         print("No sections data extracted.")
@@ -143,7 +137,7 @@ def update_json_with_sections(json_filename, docx_filename):
         for section in sections_list
     ]
     # Check if the JSON file exists
-    if os.path.exists(json_filename):
+    if json_filename.exists():
         # Load existing JSON data
         with open(json_filename, 'r') as json_file:
             json_data = json.load(json_file)

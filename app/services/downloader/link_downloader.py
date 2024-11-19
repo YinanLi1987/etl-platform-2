@@ -2,38 +2,38 @@ import os
 import requests
 from datetime import datetime
 from config import load_headers
+from pathlib import Path
+from dir_manage import TSG_EXCEL_LINKS_FOLDER, WG_EXCEL_LINKS_FOLDER, WG_TDOC_LINKS_FOLDER, TSG_EXCEL_FOLDER, WG_EXCEL_FOLDER, WG_TDOC_FOLDER
 
 headers = load_headers()
 
 class LinkDownloader:
     def __init__(self):
-        # Define folder paths
+        # Define folder paths as Path objects
         self.input_folders = {
-            "tsg_excel_links": "data/download_links/tsg_excel_links",
-            "wg_excel_links": "data/download_links/wg_excel_links",
-            "wg_tdoc_links": "data/download_links/wg_tdoc_links"
+            "tsg_excel_links": Path(TSG_EXCEL_LINKS_FOLDER),
+            "wg_excel_links": Path(WG_EXCEL_LINKS_FOLDER),
+            "wg_tdoc_links": Path(WG_TDOC_LINKS_FOLDER)
         }
         self.output_folders = {
-            "tsg_excel_links": "data/download_files/tsg_excel",
-            "wg_excel_links": "data/download_files/wg_excel",
-            "wg_tdoc_links": "data/download_files/wg_tdoc"
+            "tsg_excel_links": Path(TSG_EXCEL_FOLDER),
+            "wg_excel_links": Path(WG_EXCEL_FOLDER),
+            "wg_tdoc_links": Path(WG_TDOC_FOLDER)
         }
-        # Ensure output folders exist
+        
+        # Ensure output folders exist using Path's mkdir method
         for path in self.output_folders.values():
-            os.makedirs(path, exist_ok=True)
+            path.mkdir(parents=True, exist_ok=True)  # mkdir() is used for creating directories
 
     def get_latest_file(self, folder_path):
         """Find the latest .txt file in the specified folder."""
         try:
-            txt_files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
+            txt_files = [f for f in folder_path.glob('*.txt')] 
             if not txt_files:
                 print(f"No .txt files found in {folder_path}")
                 return None
-            latest_file = max(
-                txt_files, 
-                key=lambda f: os.path.getmtime(os.path.join(folder_path, f))
-            )
-            return os.path.join(folder_path, latest_file)
+            latest_file = max(txt_files, key=lambda f: f.stat().st_mtime)
+            return latest_file
         except (FileNotFoundError, PermissionError) as e:
             print(f"Error accessing folder {folder_path}: {e}")
             return None
@@ -68,8 +68,7 @@ class LinkDownloader:
             print(f"Attempting to download: {url}")
             response = requests.get(url,headers=headers, timeout=10)
             response.raise_for_status()  # Raise an error for bad status codes
-            with open(output_path, 'wb') as file:
-                
+            with output_path.open('wb') as file:
                     file.write(response.content)
             print(f"Downloaded: {output_path}")
             return True
@@ -109,13 +108,13 @@ class LinkDownloader:
                     # For wg_tdoc links, extract the tdocnumber from the URL.
                     # The tdocnumber seems to be the last part of the path, before the file extension
                     tdoc_number = url.split("/")[-1].split(".")[0]
-                    file_ext = os.path.splitext(url.split("/")[-1])[-1]  # Get the file extension (e.g., .zip)
+                    file_ext = Path(url).suffix  # Get the file extension (e.g., .zip)
                     filename = f"{meeting_id}_{tdoc_number}{file_ext}"  # Format: meetingid_tdocnumber.ext
                 else:
                     # For Excel links, name the file as meeting_id.xlsx
                     filename = f"{meeting_id}.xlsx"
 
-                output_path = os.path.join(self.output_folders[key], filename)
+                output_path = self.output_folders[key] / filename
                 
                 # Attempt to download the file and track success or failure
                 if self.download_file(url, output_path):

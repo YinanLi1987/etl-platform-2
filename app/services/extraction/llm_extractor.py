@@ -1,11 +1,11 @@
 
+import os
 from typing import List, Optional
 from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 from app.services.extraction.schema import Sections
-
-
-
+from dotenv import load_dotenv
+load_dotenv()
 
 # Define a custom prompt to provide instructions and any additional context.
 # 1) You can add examples into the prompt template to improve extraction quality
@@ -14,7 +14,9 @@ from app.services.extraction.schema import Sections
 # Function to extract metadata
 def extract_section_data(text: str) -> Optional[Sections]:
     
-    api_key = "OLjgi0vnIGbJVhSxRDukfAlTs6gX1Hzq"
+    api_key = os.getenv('MISTRALAI_API_KEY')
+    
+   
     prompt = ChatPromptTemplate.from_messages(
         [
             (
