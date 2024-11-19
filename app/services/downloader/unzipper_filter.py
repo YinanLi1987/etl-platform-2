@@ -16,27 +16,22 @@ class FileUnzipperFilter:
         """Unzips all .zip files in the download folder and extracts them to the unzip folder."""
         for zip_file in self.download_folder.glob("*.zip"):
             try:
-                # Extract the numeric prefix from the zip file name
-                match = re.match(r"(\d+)_", zip_file.name)
-                if match:
-                    prefix = match.group(1)
+                zip_file_name = zip_file.stem
 
-                    with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+                with zipfile.ZipFile(zip_file, 'r') as zip_ref:
                         for file_info in zip_ref.infolist():
-                            # Prepend the prefix to the original filename
-                            extracted_filename = f"{prefix}_{file_info.filename}"
-                            # Define the full path for the extracted file
+                            extracted_filename = zip_file_name + '.docx'  # Use the zip file name as the extracted filename
                             extracted_filepath = self.unzip_folder / extracted_filename
-                            
+
+                            # Ensure the directory exists
+                            extracted_filepath.parent.mkdir(parents=True, exist_ok=True)
                             # Write the file with the new name
                             with extracted_filepath.open("wb") as extracted_file:
                                 extracted_file.write(zip_ref.read(file_info.filename))
                             
-                        print(f"Unzipped: {zip_file.name} with files renamed to include prefix '{prefix}'")
-                else:
-                    print(f"Skipped: {zip_file.name} (No valid prefix found)")
+                        print(f"Unzipped and renamed to {extracted_filename} from {zip_file.name}")
+                        #break 
                 
-                print(f"Unzipped: {zip_file.name}")
                 
             except zipfile.BadZipFile:
                 print(f"Failed to unzip: {zip_file.name} (Bad zip file)")
@@ -44,7 +39,7 @@ class FileUnzipperFilter:
                 print(f"An error occurred while unzipping {zip_file.name}: {e}")
 
         # Call cleanup methods after unzipping
-        self.cleanup_download_folder()
+        #self.cleanup_download_folder()
         self.cleanup_unzip_folder()
     
     def cleanup_download_folder(self):

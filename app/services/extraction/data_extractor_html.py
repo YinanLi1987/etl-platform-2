@@ -23,19 +23,15 @@ def extract_sections_llm(filename):
     if not file_path.exists():
         print(f"File {filename} does not exist.")
         return None, None
-    print(f"File path: {file_path}")
-    print(f"File exists: {file_path.exists()}")
-    print(f"File is file: {file_path.is_file()}")
+
 
     # Convert the DOCX file to HTML and get the output as a string
-    try:
-        html_content = pypandoc.convert_file(str(file_path), 'html')
-        print(f"HTML content length: {len(html_content)}")
-    except Exception as e:
-        print(f"Error converting DOCX to HTML: {e}")
-    return None
     
-    print(str(html_content))
+    html_content = pypandoc.convert_file(str(file_path), 'html')
+    
+    
+    
+  
     # Use BeautifulSoup to parse and clean the HTML
     soup = BeautifulSoup(html_content, 'html.parser')
 

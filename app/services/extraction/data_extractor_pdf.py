@@ -97,7 +97,7 @@ def process_file_and_update_json(input_file, converted_folder, json_folder):
    
     print(f"Processed {input_file} and saved to {json_filename}")
     # Update JSON with sections data extracted from the DOCX file
-    print("hello")
+    
     update_json_with_sections(json_path, input_file)
     
      # Detect colored regions, crop, and save URLs to JSON
@@ -116,14 +116,16 @@ def update_json_with_sections(json_filename, docx_filename):
         docx_filename (str): The name of the DOCX file to convert and extract data from.
     """
     json_filename = Path(json_filename)  # Convert json_filename to a Path object
-    print(json_filename)
+  
     docx_filename = Path(docx_filename) 
-    print(docx_filename)
+    
     #print(docx_filename)
     # Convert the DOCX file to cleaned HTML and extract sections data
-    sections_data = extract_sections_llm(docx_filename)
-    print("hello :" + str(sections_data))
+    sections_data = extract_sections_llm(str(docx_filename))
+    
     #print(f"Type of sections_data: {type(sections_data)}") 
+    print(f"Type of sections_data.meeting: {type(sections_data.meeting)}")
+    print(f"Value of sections_data.meeting: {sections_data.meeting}")
 
     if sections_data is None:
         print("No sections data extracted.")

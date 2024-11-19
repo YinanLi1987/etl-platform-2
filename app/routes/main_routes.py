@@ -82,9 +82,9 @@ def unzip_files():
 
 @process_bp.route('/convert_file', methods=['POST'])
 def convert_file():
-    #input_file = "data/temp/unzip/C1-245945_was_C1-245892_was_C1-245482_PROSE_Ph3_UpdPolProv.docx"  # Change this to the appropriate path if necessary
-    #input_folder = Path(UNZIP_FILES_FOLDER) # Folder containing the DOCX files
-    input_folder = Path(TEST_UNZIP_FILES_FOLDER)
+     # Change this to the appropriate path if necessary
+    input_folder = Path(UNZIP_FILES_FOLDER) # Folder containing the DOCX files
+    #input_folder = Path(TEST_UNZIP_FILES_FOLDER)
     converted_folder = Path(CONVERTED_PDF_FOLDER) 
     json_folder = Path(EXTRACTED_JSON_FOLDER)  # Folder to save extracted JSON data
 
