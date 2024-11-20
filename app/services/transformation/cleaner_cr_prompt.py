@@ -29,6 +29,8 @@ clean_cr_prompt_text=(
                 
                 "10. 'this_CR_revision_history': Replace any Unicode quotation marks with standard double quotes and remove any unnecessary newline "
                 "characters (\n). Maintain readability.\n"
+                "Clean the following text by removing meaningless patterns or fragments like repeated symbols (* * *) and incomplete words. If the entire text becomes meaningless, return an empty string. For example:"
+                "Input: * * * First C → Output: """
                 
                 "Return a new JSON object containing only the fields that are cleaned and formatted as specified in the instructions. Include all fields that are not mentioned in the instructions as-is, without modification. Do not include any additional text."
                
