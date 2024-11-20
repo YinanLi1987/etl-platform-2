@@ -15,7 +15,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
-from dir_manage import TSG_EXCEL_LINKS_FOLDER,UNZIP_FILES_FOLDER,CONVERTED_PDF_FOLDER ,EXTRACTED_JSON_FOLDER,CLEAN_JSON_FOLDER,VALIDATED_JSON_FOLDER,TEST_UNZIP_FILES_FOLDER
+from dir_manage import TSG_EXCEL_LINKS_FOLDER,UNZIP_FILES_FOLDER,CONVERTED_PDF_FOLDER ,EXTRACTED_JSON_FOLDER,CLEAN_JSON_FOLDER,INVALIDATED_JSON_FOLDER,TEST_UNZIP_FILES_FOLDER,CLEAN_JSON_FAILED_FOLDER
 
 
 
@@ -112,13 +112,15 @@ def clean_data():
             # Define the path to the JSON file that needs cleaning
     input_folder = Path(EXTRACTED_JSON_FOLDER)
     output_folder = Path(CLEAN_JSON_FOLDER)
+    failed_folder = Path(CLEAN_JSON_FAILED_FOLDER)
     try:
 
    
         output_folder.mkdir(parents=True, exist_ok=True)
+        failed_folder.mkdir(parents=True, exist_ok=True)
 
         # Call the update function to clean the JSON file
-        clean_json_cr(input_folder, output_folder)
+        clean_json_cr(input_folder, output_folder,failed_folder)
 
         return jsonify({"message": "Data cleaning process completed successfully."})
     
@@ -130,7 +132,7 @@ def clean_data():
 @process_bp.route('/validate_cleaned_data', methods=['POST'])
 def validate_cleaned_data():
     input_folder = Path(CLEAN_JSON_FOLDER)
-    invalid_folder = Path(VALIDATED_JSON_FOLDER)
+    invalid_folder = Path(INVALIDATED_JSON_FOLDER)
     invalid_folder.mkdir(parents=True, exist_ok=True)
 
    
